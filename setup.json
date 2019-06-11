@@ -1,0 +1,56 @@
+{
+    "name": "aiida-uppasd",
+    "author": "The UppASD team",
+    "author_email": "uppasd@physics.uu.se",
+    "description": "AiiDA plugin for the atomistic spin dynamics code UppASD",
+    "url": "https://github.com/uppasd/aiida-uppasd",
+    "license": "MIT",
+    "classifiers": [
+        "Programming Language :: Python",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Framework :: AiiDA"
+    ],
+    "version": "0.1.0a0",
+    "entry_points": {
+        "aiida.data": [
+            "uppasd = aiida_uppasd.data:DiffParameters"
+        ],
+        "aiida.calculations": [
+            "uppasd = aiida_uppasd.calculations:DiffCalculation"
+        ],
+        "aiida.parsers": [
+            "uppasd = aiida_uppasd.parsers:DiffParser"
+        ],
+        "aiida.cmdline.data": [
+            "uppasd = aiida_uppasd.cli:data_cli"
+        ]
+    },
+    "include_package_data": true,
+    "setup_requires": ["reentry"],
+    "reentry_register": true,
+    "install_requires": [
+        "aiida-core>=1.0.0b3,<2.0.0",
+        "six",
+        "voluptuous"
+    ],
+    "extras_require": {
+        "testing": [
+            "pgtest==1.2.0",
+            "wheel>=0.31",
+            "coverage",
+            "pytest>=3.6.3,<5.0.0",
+            "pytest-cov>=2.6.1,<5.0.0"
+        ],
+        "pre-commit": [
+            "pre-commit==1.11.0",
+            "yapf==0.27.0",
+            "prospector==0.12.11",
+            "pylint==1.9.4"
+        ],
+        "docs": [
+            "sphinx"
+        ]
+    }
+}
