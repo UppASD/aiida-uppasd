@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from aiida.engine import ExitCode
 from aiida.orm import Dict, XyData
+from aiida.common import NotExistent
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 
@@ -11,9 +12,6 @@ class ASDParser(Parser):
 
     def __init__(self, node):
         """Initialize ASDParser instance 
-        
-        Arguments:
-            node {[type]} -- [description]
         """
         from aiida.common import exceptions
         super(ASDParser, self).__init__(node)
@@ -21,8 +19,15 @@ class ASDParser(Parser):
             raise exceptions.ParsingError("Can only parse ASDCalculation")
 
     def parse_averages(self, **kwargs):
+        """Parser for the average magnetization file
+        """
         import pandas as pd
         from aiida.orm import SinglefileData
+
+        try:
+            self.retrieved
+        except NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
 
         averages_filename = self.node.get_option('averages_filename')
 
@@ -38,7 +43,10 @@ class ASDParser(Parser):
 
         # add the averages file to the node
         self.logger.info("Parsing '{}'".format(averages_filename))
-        m_ave = pd.read_csv(averages_filename, delim_whitespace=True)
+        try:
+            m_ave = pd.read_csv(averages_filename, delim_whitespace=True)
+        except OSError:
+            return self.exit_codes.ERROR_READING_OUTPUT_FILE
 
         _t_units = "iterations"
 
@@ -53,7 +61,7 @@ class ASDParser(Parser):
 
         m_ave_dict = dict()
 
-        for col_name in m_ave.columns.values[1, :]:
+        for col_name in m_ave.columns.values[1:]:
             m_ave_dict[col_name] = m_ave[col_name].values[-1]
 
         self.out("final_averages", Dict(dict=m_ave_dict))
@@ -62,8 +70,15 @@ class ASDParser(Parser):
         return ExitCode(0)
 
     def parse_energies(self, **kwargs):
+        """Parser for the total energy file
+        """
         import pandas as pd
         from aiida.orm import SinglefileData
+
+        try:
+            self.retrieved
+        except NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
 
         energies_filename = self.node.get_option('totenergy_filename')
 
@@ -77,7 +92,11 @@ class ASDParser(Parser):
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
         self.logger.info("Parsing '{}'".format(energies_filename))
-        ene = pd.read_csv(energies_filename, delim_whitespace=True)
+
+        try:
+            ene = pd.read_csv(energies_filename, delim_whitespace=True)
+        except OSError:
+            return self.exit_codes.ERROR_READING_OUTPUT_FILE
         
         _t_units = "iterations"
 
@@ -92,7 +111,7 @@ class ASDParser(Parser):
 
         ene_dict = dict()
 
-        for col_name in ene.columns.values[1, :]:
+        for col_name in ene.columns.values[1:]:
             ene_dict[col_name] = ene[col_name].values[-1]
 
         self.out("final_energies", Dict(dict=ene_dict))
@@ -100,8 +119,15 @@ class ASDParser(Parser):
         return ExitCode(0)
 
     def parse_cummulants(self, **kwargs):
+        """Parser for the cummulants file
+        """
         import pandas as pd
         from aiida.orm import SinglefileData
+
+        try:
+            self.retrieved
+        except NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
 
         cummu_filename = self.node.get_option('cummu_filename')
 
@@ -115,7 +141,11 @@ class ASDParser(Parser):
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
         self.logger.info("Parsing '{}'".format(cummu_filename))
-        cummu = pd.read_csv(cummu_filename, delim_whitespace=True)
+
+        try:
+            cummu = pd.read_csv(cummu_filename, delim_whitespace=True)
+        except OSError:
+            return self.exit_codes.ERROR_READING_OUTPUT_FILE
 
         _t_units = "iterations"
 
@@ -132,7 +162,7 @@ class ASDParser(Parser):
 
         cummu_dict = dict()
 
-        for col_name in cummu.columns.values[1, :]:
+        for col_name in cummu.columns.values[1:]:
             cummu_dict[col_name] = cummu[col_name].values[-1]
 
         self.out("cummulants_final", Dict(dict=cummu_dict))
