@@ -4,13 +4,10 @@ from aiida.engine import ExitCode
 from aiida.orm import Dict, XyData
 from aiida.parsers.parser import Parser
 
-class ASDInputParser(Parser):
+class ASDInputParser(object):
 
     def __init__(self, node):
-        from aiida.common import exceptions
-        super(ASDInputParser, self).__init__(node)
         return  
-
 
     def print_inpsd(self, ASDInputs=None):
 
@@ -256,5 +253,4 @@ class ASDInputParser(Parser):
                                               dm_vec[iat, 1],
                                               dm_vec[iat, 2],
                                               np.linalg.norm(bond_vec[iat])))
-
         return
