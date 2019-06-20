@@ -7,9 +7,19 @@ from aiida.parsers.parser import Parser
 class ASDInputParser(object):
 
     def __init__(self, node):
+        """[summary]
+        
+        Arguments:
+            node {[type]} -- [description]
+        """
         return  
 
     def print_inpsd(self, ASDInputs=None):
+        """[summary]
+        
+        Keyword Arguments:
+            ASDInputs {[type]} -- [description] (default: {None})
+        """
 
         if ASDInputs is not None:
             # Write the inpsd.dat to file
@@ -48,6 +58,13 @@ class ASDInputParser(object):
         return
 
     def print_momfile(self, chem_type=[None], mag_mom=[None], mom=[None]):
+        """[summary]
+        
+        Keyword Arguments:
+            chem_type {list} -- [description] (default: {[None]})
+            mag_mom {list} -- [description] (default: {[None]})
+            mom {list} -- [description] (default: {[None]})
+        """
 
         if mag_mom is not None:
             mom_file = open('momfile.dat', 'w')
@@ -63,6 +80,15 @@ class ASDInputParser(object):
 
     def print_posfile(self, bas=[None], chem_type=[None], atom_type=[None],
                       chem_conc=[None], alloy=False):
+        """[summary]
+        
+        Keyword Arguments:
+            bas {list} -- [description] (default: {[None]})
+            chem_type {list} -- [description] (default: {[None]})
+            atom_type {list} -- [description] (default: {[None]})
+            chem_conc {list} -- [description] (default: {[None]})
+            alloy {bool} -- [description] (default: {False})
+        """
 
         if bas is not None:
 
@@ -92,7 +118,16 @@ class ASDInputParser(object):
 
     def print_kfile(self, ani_type=None, ani_val_k1=[None], ani_val_k2=[None],
                     ani_dir=[None], ani_rat=[None]):
+        """[summary]
         
+        Keyword Arguments:
+            ani_type {[type]} -- [description] (default: {None})
+            ani_val_k1 {list} -- [description] (default: {[None]})
+            ani_val_k2 {list} -- [description] (default: {[None]})
+            ani_dir {list} -- [description] (default: {[None]})
+            ani_rat {list} -- [description] (default: {[None]})
+        """
+
         if ani_type.lower() == 'uniaxial':
             ani_type = [1]*len(ani_val_k1)
         elif ani_type.lower() == 'cubic':
@@ -120,6 +155,15 @@ class ASDInputParser(object):
 
     def print_restart(self, num_atoms=1, num_ens=1, mom_mag=[None], mag=[None],
                       restart_name="restart._UppASD_.out"):
+        """[summary]
+        
+        Keyword Arguments:
+            num_atoms {int} -- [description] (default: {1})
+            num_ens {int} -- [description] (default: {1})
+            mom_mag {list} -- [description] (default: {[None]})
+            mag {list} -- [description] (default: {[None]})
+            restart_name {str} -- [description] (default: {"restart._UppASD_.out"})
+        """
         import itertools as itr
 
         if mag is not None:
@@ -155,6 +199,16 @@ class ASDInputParser(object):
     def print_exchange(self, atom_type=[None], chem_type=[None],
                        bond_vec=[None], exc_int=[None], alloy=False,
                        maptype=2):
+        """[summary]
+        
+        Keyword Arguments:
+            atom_type {list} -- [description] (default: {[None]})
+            chem_type {list} -- [description] (default: {[None]})
+            bond_vec {list} -- [description] (default: {[None]})
+            exc_int {list} -- [description] (default: {[None]})
+            alloy {bool} -- [description] (default: {False})
+            maptype {int} -- [description] (default: {2})
+        """
         import numpy as np
 
         if exc_int is not None:
@@ -205,6 +259,16 @@ class ASDInputParser(object):
 
     def print_dm_vector(self, atom_type=[None], chem_type=[None],
                        bond_vec=[None], dm_vec=[None], alloy=False, maptype=2):
+        """[summary]
+        
+        Keyword Arguments:
+            atom_type {list} -- [description] (default: {[None]})
+            chem_type {list} -- [description] (default: {[None]})
+            bond_vec {list} -- [description] (default: {[None]})
+            dm_vec {list} -- [description] (default: {[None]})
+            alloy {bool} -- [description] (default: {False})
+            maptype {int} -- [description] (default: {2})
+        """
         import numpy as np
 
         if dm_vec is not None:

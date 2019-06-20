@@ -18,11 +18,34 @@ class ASDParser(Parser):
         if not issubclass(node.process_class, ASDCalculation):
             raise exceptions.ParsingError("Can only parse ASDCalculation")
 
+    def parse_inpsd(self, **kwargs):
+        import re
+        import numpy as np
+
+        input_file = open('inpsd.dat').read()
+
+        prepend_str=['simid', 'do_prnstruct', 'Sym', 'Mensemble', 'Initmag',
+                     'ip_mpde', 'ip_nphase', 'ip_mcanneal', 'mode', 'Nstep',
+                     'do_avrg', 'avrg_step', 'avrg_buff', 'do_tottraj',
+                     'tottraj_step', 'tottraj_buff', 'do_ams', 'plotenergy',
+                     'do_sc', 'sc_nstep', 'sc_step', 'qpoints']
+
+        parameters = dict()
+
+        for keyword in prepend_str:
+            _regex = r"(?>=)"+keyword+r"\s*\w+"
+
+            _comp = re.compile(_regex, re.MULTILINE)
+            _val = _comp.findall(input_file)
+            parameters[keyword] = _val.replace(" ", "")
+
+        return
+
     def parse_averages(self, **kwargs):
         """Parser for the average magnetization file
         """
         import pandas as pd
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
@@ -71,7 +94,7 @@ class ASDParser(Parser):
         """Parse the projected type magnetic averages file
         """
         import pandas as pd
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
@@ -134,7 +157,7 @@ class ASDParser(Parser):
         """Parse the projected chemical magnetic averages file
         """
         import pandas as pd
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
@@ -198,7 +221,7 @@ class ASDParser(Parser):
         """Parser for the total energy file
         """
         import pandas as pd
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
@@ -246,7 +269,7 @@ class ASDParser(Parser):
         """Parser for the cummulants file
         """
         import pandas as pd
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
@@ -298,7 +321,7 @@ class ASDParser(Parser):
         import numpy as np
         import pandas as pd
         from scipy import signal
-
+        # Check if the file is present
         try:
             self.retrieved
         except NotExistent:
