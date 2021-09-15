@@ -1,9 +1,9 @@
 {
-    "name": "aiida-uppasd",
-    "author": "The UppASD team",
-    "author_email": "uppasd@physics.uu.se",
-    "description": "AiiDA plugin for the atomistic spin dynamics code UppASD",
-    "url": "https://github.com/uppasd/aiida-uppasd",
+    "name": "UppASD_AiiDA_interface",
+    "author": "Qichen Xu, Anders Bergman, Anna Delin, Jonathan Chico",
+    "author_email": "qichenx@kth.se",
+    "description": "Interface for UppASD and AiiDA",
+    "url": "",
     "license": "MIT",
     "classifiers": [
         "Programming Language :: Python",
@@ -12,46 +12,42 @@
         "Natural Language :: English",
         "Framework :: AiiDA"
     ],
-    "version": "0.1.0a0",
+    "version": "0.1.0",
     "entry_points": {
-        "aiida.data": [
-            "uppasd = aiida_uppasd.data:DiffParameters"
-        ],
         "aiida.calculations": [
-            "uppasd = aiida_uppasd.calculations:DiffCalculation"
+            "UppASD_core_calculations = UppASD_AiiDA.calculations.core_calcs:UppASD"
         ],
         "aiida.parsers": [
-            "uppasd = aiida_uppasd.parsers:DiffParser"
-        ],
-        "aiida.cmdline.data": [
-            "uppasd = aiida_uppasd.cli:data_cli"
+            "UppASD_core_parsers = UppASD_AiiDA.parsers.core_parser:SpinDynamic_core_parser"
         ]
     },
     "include_package_data": true,
     "setup_requires": ["reentry"],
     "reentry_register": true,
     "install_requires": [
-        "aiida-core>=1.0.0b3,<2.0.0",
+        "aiida-core>=1.1.0,<2.0.0",
         "six",
-        "voluptuous",
-        "pandas==0.24.2"
+        "voluptuous"
     ],
     "extras_require": {
         "testing": [
-            "pgtest==1.2.0",
-            "wheel>=0.31",
+            "pgtest~=1.3.1",
+            "wheel~=0.31",
             "coverage",
-            "pytest>=3.6.3,<5.0.0",
-            "pytest-cov>=2.6.1,<5.0.0"
+            "pytest~=3.6,<5.0.0",
+            "pytest-cov"
         ],
         "pre-commit": [
-            "pre-commit==1.11.0",
-            "yapf==0.27.0",
-            "prospector==0.12.11",
-            "pylint==1.9.4"
+            "astroid==2.2.5",
+            "pre-commit==1.20.0",
+            "prospector==1.1.7",
+            "pylint==2.3.1"
         ],
         "docs": [
-            "sphinx"
+            "sphinx",
+            "sphinxcontrib-contentui",
+            "sphinxcontrib-details-directive; python_version>='3.0'",
+            "sphinx-rtd-theme"
         ]
     }
 }
