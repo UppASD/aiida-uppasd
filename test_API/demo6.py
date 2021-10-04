@@ -51,6 +51,8 @@ inpsd_dict = {
     'qpoints': Str('F'),
     'plotenergy': Int(1),
     'do_avrg': Str('Y'),
+    #new added flags
+    'do_tottraj':Str('Y'),
 }
 
 r_l = List(list=[('*.out','.', 0)])  
