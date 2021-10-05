@@ -70,6 +70,19 @@ def averages_file_paser(file_name_of_averages):
     return Iter_num_average,M_x, M_y, M_z, M, M_stdv
 
 
+def moment_file_paser(mom_out_file):
+    mom_output = pd.read_csv(mom_out_file,sep='\s+', header=None,skiprows=7)
+    mom_x = mom_output[4]
+    mom_y = mom_output[5]
+    mom_z = mom_output[6]
+    mom_states_x =np.array(mom_x)
+    mom_states_y =np.array(mom_y)
+    mom_states_z =np.array(mom_z)
+    return mom_states_x,mom_states_y,mom_states_z
+ 
+
+
+
 '''
 # add new paser if needed
 def _file_paser(file_name_of_):
@@ -112,6 +125,12 @@ class SpinDynamic_core_parser(Parser):
                 qm_minima_filename = name
             if 'totenergy' in name:
                 totenergy_filename = name
+
+            
+            if 'moment' in name:
+                moment_filename = name
+            
+
         # parse totenergy.xx.out
         self.logger.info("Parsing '{}'".format(totenergy_filename))
         with output_folder.open(totenergy_filename, 'rb') as f:
@@ -132,7 +151,7 @@ class SpinDynamic_core_parser(Parser):
             output_totenergy.set_array('Chir', Chir)
         # it is not good to hold a particular output datatype
         self.out('totenergy', output_totenergy)
-        #results. set_array('totenergy', output_totenergy)
+
 
         # parse coord.xx.out
         self.logger.info("Parsing '{}'".format(coord_filename))
@@ -141,7 +160,6 @@ class SpinDynamic_core_parser(Parser):
             output_coord = ArrayData()
             output_coord.set_array('coord', coord)
         self.out('coord', output_coord)
-        #results. set_array('coord', output_coord)
 
         # parse qpoints.xx.out
         self.logger.info("Parsing '{}'".format(qpoints_filename))
@@ -150,7 +168,6 @@ class SpinDynamic_core_parser(Parser):
             output_qpoints = ArrayData()
             output_qpoints.set_array('qpoints', qpoints)
         self.out('qpoints', output_qpoints)
-        #results. set_array('qpoints', output_qpoints)
 
         # parse averages.xx.out
         self.logger.info("Parsing '{}'".format(averages_filename))
@@ -164,7 +181,6 @@ class SpinDynamic_core_parser(Parser):
             output_averages.set_array('M', M)
             output_averages.set_array('M_stdv', M_stdv)
         self.out('averages', output_averages)
-        #results. set_array('averages', output_averages)
 
         # parse qm_sweep.xx.out
         self.logger.info("Parsing '{}'".format(qm_sweep_filename))
@@ -174,7 +190,6 @@ class SpinDynamic_core_parser(Parser):
             output_qm_sweep.set_array('Q_vector', Q_vector)
             output_qm_sweep.set_array('Energy_mRy', Energy_mRy)
         self.out('qm_sweep', output_qm_sweep)
-        #results. set_array('qm_sweep', output_qm_sweep)
 
         # parse qm_minima.xx.out
         self.logger.info("Parsing '{}'".format(qm_minima_filename))
@@ -184,7 +199,19 @@ class SpinDynamic_core_parser(Parser):
             output_qm_minima.set_array('Q_vector', Q_vector)
             output_qm_minima.set_array('Energy_mRy', Energy_mRy)
         self.out('qm_minima', output_qm_minima)
-        #results. set_array('qm_minima', output_qm_minima)
+
+
+    
+        # parse moment.xx.out
+        self.logger.info("Parsing '{}'".format(moment_filename))
+        with output_folder.open(moment_filename, 'rb') as f:
+            mom_states_x,mom_states_y,mom_states_z = moment_file_paser(f)
+            output_mom_states = ArrayData()
+            output_mom_states.set_array('mom_states_x', mom_states_x)
+            output_mom_states.set_array('mom_states_y', mom_states_y)
+            output_mom_states.set_array('mom_states_z', mom_states_z)
+        self.out('mom_states_traj', output_mom_states)
+        
 
         return ExitCode(0)
         # here we united all output array into a Dict
