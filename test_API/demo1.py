@@ -1,62 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 23 15:07:58 2021
+Created on Mon Aug 23 15:15:05 2021
 
 @author: qichen
 """
-#this demo offers a possibility that we could directly use traditional UppASD working folder to take the advantages from aiida
-
 from aiida.plugins import DataFactory, CalculationFactory
 from aiida.engine import run
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
 import numpy as np
 import aiida
 import os
+from aiida.engine import submit
+
 aiida.load_profile()
 code = Code.get_from_string('uppasd_dev@uppasd_local')
-simid = Str('SCsurf_T')
-r_l = List(list=[f'coord.{simid.value}.out',
-                 f'qm_minima.{simid.value}.out',
-                 f'qm_sweep.{simid.value}.out',
-                 f'qpoints.out',
-                 f'totenergy.{simid.value}.out',
-                 f'averages.{simid.value}.out',
-                 'fort.2000',
-                 'inp.SCsurf_T.yaml',
-                 'qm_restart.SCsurf_T.out',
-                 'restart.SCsurf_T.out'])
-dmdata = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'dmdata'))
-jij = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'jij'))
-momfile = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'momfile'))
-posfile = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'posfile'))
-qfile = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'qfile'))
-inpsd_dat = SinglefileData(
-    file=os.path.join(os.getcwd(), "input_files", 'inpsd.dat'))
+#code = Code.get_from_string('uppasd_nsc_2021@nsc_uppasd_2021')
+aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+builder = aiida_uppasd.get_builder()
 
-inputs = {
-    'code': code,
-    'dmdata': dmdata,
-    'jij': jij,
-    'momfile': momfile,
-    'posfile': posfile,
-    'qfile': qfile,
-    'inpsd_dat_exist': Int(1),
-    'inpsd_dat': inpsd_dat,
-    'retrieve_list_name': r_l,
-    'metadata': {
-        'options': {
-            'max_wallclock_seconds': 60,
-            'resources': {'num_machines': 1},
-            'input_filename': 'inpsd.dat',
-            'parser_name': 'UppASD_core_parsers',
-        },
-    },
-}
 
-result = run(CalculationFactory('UppASD_core_calculations'), **inputs)
+
+
+#pre-prepared files folder:
+prepared_file_folder = Str(os.path.join(os.getcwd(),'demo1_input'))
+except_filenames = List(list = [])
+
+r_l = List(list=[('*.out','.', 0)])  
+#we could use this to retrived all .out file to aiida
+
+
+# set up calculation
+builder.code = code
+builder.prepared_file_folder = prepared_file_folder
+builder.except_filenames = except_filenames
+builder.retrieve_list_name = r_l
+builder.metadata.options.resources = {'num_machines': 1,'num_mpiprocs_per_machine':16}
+builder.metadata.options.max_wallclock_seconds = 600
+builder.metadata.options.parser_name = 'UppASD_core_parsers'
+builder.metadata.label = 'Demo5'
+builder.metadata.description = 'Test demo5 for UppASD-AiiDA'
+job_node = submit(builder)
+print('Job submitted, PK: {}'.format(job_node.pk))

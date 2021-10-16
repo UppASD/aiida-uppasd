@@ -15,10 +15,10 @@
     "version": "0.1.0",
     "entry_points": {
         "aiida.calculations": [
-            "UppASD_core_calculations = UppASD_AiiDA.calculations.core_calcs:UppASD"
+            "UppASD_core_calculations = UppASD_AiiDA.core_calcs:UppASD"
         ],
         "aiida.parsers": [
-            "UppASD_core_parsers = UppASD_AiiDA.parsers.core_parser:SpinDynamic_core_parser"
+            "UppASD_core_parsers = UppASD_AiiDA.core_parser:SpinDynamic_core_parser"
         ]
     },
     "include_package_data": true,

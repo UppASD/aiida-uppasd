@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-# import sys
+import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
 
@@ -64,4 +64,48 @@ if not os.environ.get('READTHEDOCS', None):
 html_static_path = ['_static']
 
 
+show_authors = True
 
+
+html_theme_options = {
+    'display_version': True,
+}
+
+
+def run_apidoc(_):
+    """
+    edited from aiida_diff plugin
+    """
+    source_dir = os.path.abspath(os.path.dirname(__file__))
+    apidoc_dir = os.path.join(source_dir, 'apidoc')
+    package_dir = os.path.join(source_dir, os.pardir, os.pardir, 'UppASD_AiiDA')
+
+    # In #1139, they suggest the route below, but this ended up
+    # calling sphinx-build, not sphinx-apidoc
+    #from sphinx.apidoc import main
+    #main([None, '-e', '-o', apidoc_dir, package_dir, '--force'])
+
+    import subprocess
+    cmd_path = 'sphinx-apidoc'
+    if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv
+        # If we are, assemble the path manually
+        cmd_path = os.path.abspath(
+            os.path.join(sys.prefix, 'bin', 'sphinx-apidoc'))
+
+    options = [
+        '-o',
+        apidoc_dir,
+        package_dir,
+        '--private',
+        '--force',
+        #'--no-toc',
+    ]
+
+    # See https://stackoverflow.com/a/30144019
+    env = os.environ.copy()
+    env['SPHINX_APIDOC_OPTIONS'] = 'members,special-members,private-members,undoc-members,show-inheritance'
+    subprocess.check_call([cmd_path] + options, env=env)
+
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
