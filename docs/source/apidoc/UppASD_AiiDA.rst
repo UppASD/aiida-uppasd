@@ -1,4 +1,4 @@
-API\_docs 
+UppASD\_AiiDA package
 =====================
 
 Submodules
