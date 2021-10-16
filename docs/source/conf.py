@@ -13,7 +13,13 @@
 import os
 import sys
 
+from aiida.manage.configuration import load_documentation_profile
 
+# -- AiiDA-related setup --------------------------------------------------
+
+# Load the dummy profile even if we are running locally, this way the documentation will succeed even if the current
+# default profile of the AiiDA installation does not use a Django backend.
+load_documentation_profile()
 
 
 # -- Project information -----------------------------------------------------
