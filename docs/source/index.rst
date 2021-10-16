@@ -29,7 +29,7 @@ Our ambition includes but not limited in giving it possibility to improve ab ini
 
 If you use this plugin for your research, please cite the following work:
 
-.. highlights:: Qichen Xu, Anders Bergman, Jonathan Chico,Anna Delin
+.. highlights:: Qichen Xu, Anders Bergman, Jonathan Chico, Anna Delin
    Jornal Name XXX, YYYY (Year).
 
 If you use UppASD for your research, please cite the following work:
