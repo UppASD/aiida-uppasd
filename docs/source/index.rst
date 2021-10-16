@@ -25,8 +25,8 @@ Our ambition includes but not limited in giving it possibility to improve ab ini
 
    _dev_guide/index
    _user_guide/index
-   API documentation <apidoc/AiiDA_UppASD>
-
+   apidoc/modules
+   
 If you use this plugin for your research, please cite the following work:
 
 .. highlights:: Qichen Xu, Anders Bergman, Anna Delin, Jonathan Chico. 

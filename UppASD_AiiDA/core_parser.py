@@ -9,23 +9,13 @@ import pandas as pd
 
 class SpinDynamic_core_parser(Parser):
     """    
-    | Note that, all the parser here are just demos,or in other word, 
-    | basic version(np.array) You can change it as you want and parser
-    | it to fit your need.
-    | 
-    | you could you the example here to write you parser:
-    |     
-    | #def _file_paser(file_name_of_):
-    | #    result = pd.read_csv("",sep ='\s+',header=None)
-    | #     = np.array(result)
-    | #return
+    Note that, all the parser here are just demos,or in other word,  
+    basic version(np.array) You can change it as you want and parser  
+    it to fit your need. 
 
-
-
-    :param Parser: father class aiida.parsers.parser 
-    :type Parser: aiida.parsers.parser module 
+    :param Parser father class aiida.parsers.parser 
+    :type Parser aiida.parsers.parser module 
     :return: parsed numpy array
-    :rtype: numpy array
     """    
 
 
@@ -33,15 +23,10 @@ class SpinDynamic_core_parser(Parser):
 
     
     def total_energy_file_paser(self,file_name_of_total_energy):
-        """        
-        | file_name_of_total_energy : file name of total energy
-        | 
-        | this should get from retrieved file automatically.
-
-        :param file_name_of_total_energy: 
-        :type file_name_of_total_energy: opened file
+        """
+        :param file_name_of_total_energy 
+        :type file_name_of_total_energy opened file
         :return: np array
-        :rtype: numpy array
         """        
        
         # here the inputfile name should be totenergy.SCsurf_T.out
@@ -64,12 +49,9 @@ class SpinDynamic_core_parser(Parser):
     
     def coord_file_paser(self,file_name_of_coord):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param file_name_of_coord: coord file 
-        :type file_name_of_coord: opened output file
+        :param file_name_of_coord coord file 
+        :type file_name_of_coord opened output file
         :return: np array
-        :rtype:  np.array
         """        
 
         # this matrix includes series number: the first C
@@ -80,12 +62,9 @@ class SpinDynamic_core_parser(Parser):
     
     def qpoints_file_paser(self,file_name_of_qpoints):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param file_name_of_qpoints: points file
-        :type file_name_of_qpoints: opened output file
+        :param file_name_of_qpoints points file
+        :type file_name_of_qpoints opened output file
         :return: np array
-        :rtype: np array
         """        
        
         result = pd.read_csv(file_name_of_qpoints, sep='\s+', header=None)
@@ -95,12 +74,9 @@ class SpinDynamic_core_parser(Parser):
     
     def qm_sweep_file_paser(self,file_name_of_qm_sweep):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param file_name_of_qm_sweep: qm sweep file
-        :type file_name_of_qm_sweep: opened output file
+        :param file_name_of_qm_sweep qm sweep file
+        :type file_name_of_qm_sweep opened output file
         :return: np.array
-        :rtype: np.array
         """        
     
         # the header is not suitable so we delete it
@@ -113,12 +89,9 @@ class SpinDynamic_core_parser(Parser):
     
     def qm_minima_file_paser(self,file_name_of_qm_minima):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param file_name_of_qm_minima: qm minima file
-        :type file_name_of_qm_minima: opened output file
+        :param file_name_of_qm_minima qm minima file
+        :type file_name_of_qm_minima opened output file
         :return: np.array
-        :rtype: np.array
         """        
         result = pd.read_csv(file_name_of_qm_minima,
                              sep='\s+', header=None, skiprows=1)
@@ -129,12 +102,9 @@ class SpinDynamic_core_parser(Parser):
     
     def averages_file_paser(self,file_name_of_averages):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param file_name_of_averages: averages file
-        :type file_name_of_averages:opened output file
+        :param file_name_of_averages averages file 
+        :type file_name_of_averages opened output file
         :return: np.array
-        :rtype:np.array
         """        
         result = pd.read_csv(file_name_of_averages,
                              sep='\s+', header=None).drop([0])
@@ -149,13 +119,9 @@ class SpinDynamic_core_parser(Parser):
     
     def moment_file_paser(self,mom_out_file):
         """
-        | this should get from retrieved file automatically.
-        | 
-
-        :param mom_out_file: moment file
-        :type mom_out_file: opened output file
+        :param mom_out_file moment file
+        :type mom_out_file opened output file
         :return: np.array
-        :rtype: np.array
         """        
        
         mom_output = pd.read_csv(mom_out_file, sep='\s+', header=None, skiprows=7)
@@ -170,12 +136,9 @@ class SpinDynamic_core_parser(Parser):
     
     def dm_out_parser(self,dmdata_out_file):
         """
-        | this should get from retrieved file automatically.
-        | 
-        :param dmdata_out_file: dmdata file
-        :type dmdata_out_file: opened output file
+        :param dmdata_out_file dmdata file
+        :type dmdata_out_file opened output file
         :return: np.array
-        :rtype: np.array
         """        
        
         data_full = pd.read_csv(dmdata_out_file, sep='\s+',
@@ -202,23 +165,11 @@ class SpinDynamic_core_parser(Parser):
 
 
     def parse(self, **kwargs):
-        """
-        | !!! IMPORTANT All parser should be connect to the output port in core_calcs.py
-
-        | 
-        | **kwargs : all files in the retrieved folder, we have no need to care about how many 
-        | output file will UppASD generate, only care those we need and parser them into the 
-        | data type you need
-        |
-        | one example for customizd parser
-        | #    def _file_paser(file_name_of_):
-        | #        result = pd.read_csv("",sep ='\s+',header=None)
-        | #         = np.array(result)
-        | #        return
-        | #
-        | #        Returns
-        | -------
-        | All parser should be connect to the output port in core_calcs.py
+        """IMPORTANT, All parser should be connect to the output port in core_calcs, 
+         since all files have been retrieved into the retrieved folder, 
+         we have no need to care about how many output file will UppASD generate, 
+         only thing that need to care is when parsering them into the data type you need, 
+         all parser should be connect to the output port in core_calcs
         """        
 
        #results = ArrayData()

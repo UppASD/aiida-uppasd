@@ -25,7 +25,7 @@ class UppASD(CalcJob):
         | could not see your parsed output array in database.
         
         | You can also use our example down there to make your output port.
-        
+
         | #example:
         | #spec.output('xx_out', valid_type=ArrayData, required=False,
         | #            help='')
@@ -79,7 +79,6 @@ class UppASD(CalcJob):
             correct name(same name with flags) could be placed in the input folder., defaults to []
         :type except_files: list, optional
         :return:  a list of file names for input and generate tags.
-        :rtype: list
         """        
 
         if ".DS_Store" not in except_files:
@@ -99,11 +98,9 @@ class UppASD(CalcJob):
         | it to aiida like what show in demo1  but remember to name 'inpsd.dat'
         | as 'inpsd' without the file extension name'.out'
 
-        :param folder:  an `aiida.common.folders.Folder` where the plugin should temporarily place all files needed by
-            the calculation.
+        :param folder:  an `aiida.common.folders.Folder` where the plugin should temporarily place all files needed by the calculation.
         :type folder: aiida.common.folders.Folder
         :return: calcinfo
-        :rtype:aiida.common.datastructures.CalcInfo` instance
         """        
      
 
