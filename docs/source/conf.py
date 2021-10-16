@@ -77,7 +77,7 @@ def run_apidoc(_):
     edited from aiida_diff plugin
     """
     source_dir = os.path.abspath(os.path.dirname(__file__))
-    apidoc_dir = os.path.join(source_dir, '_apidoc')
+    apidoc_dir = os.path.join(source_dir, 'apidoc')
     package_dir = os.path.join(source_dir, os.pardir, os.pardir, 'UppASD_AiiDA')
 
     # In #1139, they suggest the route below, but this ended up
