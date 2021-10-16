@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>UppASD_AiiDA.core_parser &mdash; UppASD-AiiDA 0.0.1a1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> UppASD-AiiDA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_dev_guide/Tutorials_for_developer.html">Tutorials for developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_user_guide/Tutorials_for_users.html">Tutorials for users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../apidoc/UppASD_AiiDA.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">UppASD-AiiDA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>UppASD_AiiDA.core_parser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for UppASD_AiiDA.core_parser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Parser for UppASD</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">aiida.engine</span> <span class="kn">import</span> <span class="n">ExitCode</span>
+<span class="kn">from</span> <span class="nn">aiida.parsers.parser</span> <span class="kn">import</span> <span class="n">Parser</span>
+<span class="kn">from</span> <span class="nn">aiida.orm</span> <span class="kn">import</span> <span class="n">ArrayData</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="SpinDynamic_core_parser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser">[docs]</a><span class="k">class</span> <span class="nc">SpinDynamic_core_parser</span><span class="p">(</span><span class="n">Parser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;    </span>
+<span class="sd">    | Note that, all the parser here are just demos,or in other word, </span>
+<span class="sd">    | basic version(np.array) You can change it as you want and parser</span>
+<span class="sd">    | it to fit your need.</span>
+<span class="sd">    | </span>
+<span class="sd">    | you could you the example here to write you parser:</span>
+<span class="sd">    |     </span>
+<span class="sd">    | #def _file_paser(file_name_of_):</span>
+<span class="sd">    | #    result = pd.read_csv(&quot;&quot;,sep =&#39;\s+&#39;,header=None)</span>
+<span class="sd">    | #     = np.array(result)</span>
+<span class="sd">    | #return</span>
+
+
+
+<span class="sd">    :param Parser: father class aiida.parsers.parser </span>
+<span class="sd">    :type Parser: aiida.parsers.parser module </span>
+<span class="sd">    :return: parsed numpy array</span>
+<span class="sd">    :rtype: numpy array</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+
+
+
+
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.total_energy_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.total_energy_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">total_energy_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_total_energy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;        </span>
+<span class="sd">        | file_name_of_total_energy : file name of total energy</span>
+<span class="sd">        | </span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+
+<span class="sd">        :param file_name_of_total_energy: </span>
+<span class="sd">        :type file_name_of_total_energy: opened file</span>
+<span class="sd">        :return: np array</span>
+<span class="sd">        :rtype: numpy array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+       
+        <span class="c1"># here the inputfile name should be totenergy.SCsurf_T.out</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_total_energy</span><span class="p">,</span>
+                             <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">Iter_num_totenergy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">Tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">Exc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">Ani</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+        <span class="n">DM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+        <span class="n">PD</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span>
+        <span class="n">BiqDM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">6</span><span class="p">]))</span>
+        <span class="n">BQ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">7</span><span class="p">]))</span>
+        <span class="n">Dip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">8</span><span class="p">]))</span>
+        <span class="n">Zeeman</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">9</span><span class="p">]))</span>
+        <span class="n">LSF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">10</span><span class="p">]))</span>
+        <span class="n">Chir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">11</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">Iter_num_totenergy</span><span class="p">,</span> <span class="n">Tot</span><span class="p">,</span> <span class="n">Exc</span><span class="p">,</span> <span class="n">Ani</span><span class="p">,</span> <span class="n">DM</span><span class="p">,</span> <span class="n">PD</span><span class="p">,</span> <span class="n">BiqDM</span><span class="p">,</span> <span class="n">BQ</span><span class="p">,</span> <span class="n">Dip</span><span class="p">,</span> <span class="n">Zeeman</span><span class="p">,</span> <span class="n">LSF</span><span class="p">,</span> <span class="n">Chir</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.coord_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.coord_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">coord_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_coord</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param file_name_of_coord: coord file </span>
+<span class="sd">        :type file_name_of_coord: opened output file</span>
+<span class="sd">        :return: np array</span>
+<span class="sd">        :rtype:  np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+
+        <span class="c1"># this matrix includes series number: the first C</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_coord</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coord</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.qpoints_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.qpoints_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">qpoints_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_qpoints</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param file_name_of_qpoints: points file</span>
+<span class="sd">        :type file_name_of_qpoints: opened output file</span>
+<span class="sd">        :return: np array</span>
+<span class="sd">        :rtype: np array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+       
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_qpoints</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">qpoints</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.qm_sweep_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.qm_sweep_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">qm_sweep_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_qm_sweep</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param file_name_of_qm_sweep: qm sweep file</span>
+<span class="sd">        :type file_name_of_qm_sweep: opened output file</span>
+<span class="sd">        :return: np.array</span>
+<span class="sd">        :rtype: np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+    
+        <span class="c1"># the header is not suitable so we delete it</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_qm_sweep</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span>
+                             <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Q_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">Energy_mRy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Q_vector</span><span class="p">,</span> <span class="n">Energy_mRy</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.qm_minima_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.qm_minima_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">qm_minima_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_qm_minima</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param file_name_of_qm_minima: qm minima file</span>
+<span class="sd">        :type file_name_of_qm_minima: opened output file</span>
+<span class="sd">        :return: np.array</span>
+<span class="sd">        :rtype: np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_qm_minima</span><span class="p">,</span>
+                             <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Q_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">Energy_mRy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Q_vector</span><span class="p">,</span> <span class="n">Energy_mRy</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.averages_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.averages_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">averages_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_name_of_averages</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param file_name_of_averages: averages file</span>
+<span class="sd">        :type file_name_of_averages:opened output file</span>
+<span class="sd">        :return: np.array</span>
+<span class="sd">        :rtype:np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_name_of_averages</span><span class="p">,</span>
+                             <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">Iter_num_average</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]))</span>
+        <span class="n">M_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="n">M_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">2</span><span class="p">]))</span>
+        <span class="n">M_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">3</span><span class="p">]))</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">4</span><span class="p">]))</span>
+        <span class="n">M_stdv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result</span><span class="p">)[:,</span> <span class="mi">5</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">Iter_num_average</span><span class="p">,</span> <span class="n">M_x</span><span class="p">,</span> <span class="n">M_y</span><span class="p">,</span> <span class="n">M_z</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M_stdv</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.moment_file_paser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.moment_file_paser">[docs]</a>    <span class="k">def</span> <span class="nf">moment_file_paser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mom_out_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+
+<span class="sd">        :param mom_out_file: moment file</span>
+<span class="sd">        :type mom_out_file: opened output file</span>
+<span class="sd">        :return: np.array</span>
+<span class="sd">        :rtype: np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+       
+        <span class="n">mom_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">mom_out_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+        <span class="n">mom_x</span> <span class="o">=</span> <span class="n">mom_output</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">mom_y</span> <span class="o">=</span> <span class="n">mom_output</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="n">mom_z</span> <span class="o">=</span> <span class="n">mom_output</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">mom_states_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mom_x</span><span class="p">)</span>
+        <span class="n">mom_states_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mom_y</span><span class="p">)</span>
+        <span class="n">mom_states_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mom_z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mom_states_x</span><span class="p">,</span> <span class="n">mom_states_y</span><span class="p">,</span> <span class="n">mom_states_z</span></div>
+    
+    
+<div class="viewcode-block" id="SpinDynamic_core_parser.dm_out_parser"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.dm_out_parser">[docs]</a>    <span class="k">def</span> <span class="nf">dm_out_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dmdata_out_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | this should get from retrieved file automatically.</span>
+<span class="sd">        | </span>
+<span class="sd">        :param dmdata_out_file: dmdata file</span>
+<span class="sd">        :type dmdata_out_file: opened output file</span>
+<span class="sd">        :return: np.array</span>
+<span class="sd">        :rtype: np.array</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+       
+        <span class="n">data_full</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">dmdata_out_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span>
+                                <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">atom_site_A</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">atom_site_B</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1">#because dgl nodes is start from 0 so we need to use atom site minius 1 to fit DGL</span>
+        <span class="n">atom_site_A</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">atom_site_A</span><span class="p">]</span>
+        <span class="n">atom_site_B</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">atom_site_B</span><span class="p">]</span>
+        <span class="n">atom_site_A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">atom_site_A</span><span class="p">)</span>
+        <span class="n">atom_site_B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">atom_site_B</span><span class="p">)</span>
+        <span class="n">Jij_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">Jij_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+        <span class="n">Jij_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">DM_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
+        <span class="n">DM_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+        <span class="n">DM_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_full</span><span class="p">[</span><span class="mi">9</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">atom_site_A</span><span class="p">,</span> <span class="n">atom_site_B</span><span class="p">,</span> <span class="n">Jij_x</span><span class="p">,</span> <span class="n">Jij_y</span><span class="p">,</span> <span class="n">Jij_z</span><span class="p">,</span> <span class="n">DM_x</span><span class="p">,</span> <span class="n">DM_y</span><span class="p">,</span> <span class="n">DM_z</span></div>
+
+    
+    
+
+
+
+
+<div class="viewcode-block" id="SpinDynamic_core_parser.parse"><a class="viewcode-back" href="../../apidoc/UppASD_AiiDA.html#UppASD_AiiDA.core_parser.SpinDynamic_core_parser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        | !!! IMPORTANT All parser should be connect to the output port in core_calcs.py</span>
+
+<span class="sd">        | </span>
+<span class="sd">        | **kwargs : all files in the retrieved folder, we have no need to care about how many </span>
+<span class="sd">        | output file will UppASD generate, only care those we need and parser them into the </span>
+<span class="sd">        | data type you need</span>
+<span class="sd">        |</span>
+<span class="sd">        | one example for customizd parser</span>
+<span class="sd">        | #    def _file_paser(file_name_of_):</span>
+<span class="sd">        | #        result = pd.read_csv(&quot;&quot;,sep =&#39;\s+&#39;,header=None)</span>
+<span class="sd">        | #         = np.array(result)</span>
+<span class="sd">        | #        return</span>
+<span class="sd">        | #</span>
+<span class="sd">        | #        Returns</span>
+<span class="sd">        | -------</span>
+<span class="sd">        | All parser should be connect to the output port in core_calcs.py</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+
+       <span class="c1">#results = ArrayData()</span>
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retrieved</span>
+
+        <span class="n">retrived_file_name_list</span> <span class="o">=</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">list_object_names</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">retrived_file_name_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;coord&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">coord_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse coord.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coord_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">coord_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coord_file_paser</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_coord</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_coord</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;coord&#39;</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;coord&#39;</span><span class="p">,</span> <span class="n">output_coord</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;qpoints&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">qpoints_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse qpoints.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qpoints_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">qpoints_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">qpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints_file_paser</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_qpoints</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_qpoints</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;qpoints&#39;</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;qpoints&#39;</span><span class="p">,</span> <span class="n">output_qpoints</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;averages&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">averages_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse averages.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">averages_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">averages_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">Iter_num_average</span><span class="p">,</span> <span class="n">M_x</span><span class="p">,</span> <span class="n">M_y</span><span class="p">,</span> <span class="n">M_z</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">M_stdv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">averages_file_paser</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_averages</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span>
+                        <span class="s1">&#39;Iter_num_average&#39;</span><span class="p">,</span> <span class="n">Iter_num_average</span><span class="p">)</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;M_x&#39;</span><span class="p">,</span> <span class="n">M_x</span><span class="p">)</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;M_y&#39;</span><span class="p">,</span> <span class="n">M_y</span><span class="p">)</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;M_z&#39;</span><span class="p">,</span> <span class="n">M_z</span><span class="p">)</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+                    <span class="n">output_averages</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;M_stdv&#39;</span><span class="p">,</span> <span class="n">M_stdv</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;averages&#39;</span><span class="p">,</span> <span class="n">output_averages</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;qm_sweep&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">qm_sweep_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse qm_sweep.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qm_sweep_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">qm_sweep_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">Q_vector</span><span class="p">,</span> <span class="n">Energy_mRy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qm_sweep_file_paser</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_qm_sweep</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_qm_sweep</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Q_vector&#39;</span><span class="p">,</span> <span class="n">Q_vector</span><span class="p">)</span>
+                    <span class="n">output_qm_sweep</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Energy_mRy&#39;</span><span class="p">,</span> <span class="n">Energy_mRy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;qm_sweep&#39;</span><span class="p">,</span> <span class="n">output_qm_sweep</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;qm_minima&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">qm_minima_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse qm_minima.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qm_minima_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">qm_minima_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">Q_vector</span><span class="p">,</span> <span class="n">Energy_mRy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qm_minima_file_paser</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_qm_minima</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_qm_minima</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Q_vector&#39;</span><span class="p">,</span> <span class="n">Q_vector</span><span class="p">)</span>
+                    <span class="n">output_qm_minima</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Energy_mRy&#39;</span><span class="p">,</span> <span class="n">Energy_mRy</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;qm_minima&#39;</span><span class="p">,</span> <span class="n">output_qm_minima</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;totenergy&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">totenergy_filename</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse totenergy.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">totenergy_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">totenergy_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">Iter_num_totenergy</span><span class="p">,</span> <span class="n">Tot</span><span class="p">,</span> <span class="n">Exc</span><span class="p">,</span> <span class="n">Ani</span><span class="p">,</span> <span class="n">DM</span><span class="p">,</span> <span class="n">PD</span><span class="p">,</span> <span class="n">BiqDM</span><span class="p">,</span> <span class="n">BQ</span><span class="p">,</span> <span class="n">Dip</span><span class="p">,</span> <span class="n">Zeeman</span><span class="p">,</span> <span class="n">LSF</span><span class="p">,</span> <span class="n">Chir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_energy_file_paser</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span>
+                        <span class="s1">&#39;Iter_num_totenergy&#39;</span><span class="p">,</span> <span class="n">Iter_num_totenergy</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Tot&#39;</span><span class="p">,</span> <span class="n">Tot</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Exc&#39;</span><span class="p">,</span> <span class="n">Exc</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Ani&#39;</span><span class="p">,</span> <span class="n">Ani</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;DM&#39;</span><span class="p">,</span> <span class="n">DM</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;PD&#39;</span><span class="p">,</span> <span class="n">PD</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;BiqDM&#39;</span><span class="p">,</span> <span class="n">BiqDM</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;BQ&#39;</span><span class="p">,</span> <span class="n">BQ</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Dip&#39;</span><span class="p">,</span> <span class="n">Dip</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Zeeman&#39;</span><span class="p">,</span> <span class="n">Zeeman</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;LSF&#39;</span><span class="p">,</span> <span class="n">LSF</span><span class="p">)</span>
+                    <span class="n">output_totenergy</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Chir&#39;</span><span class="p">,</span> <span class="n">Chir</span><span class="p">)</span>
+                <span class="c1"># it is not good to hold a particular output datatype</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;totenergy&#39;</span><span class="p">,</span> <span class="n">output_totenergy</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;moment&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">moment_filename</span> <span class="o">=</span> <span class="n">name</span>
+
+                <span class="c1"># parse moment.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">moment_filename</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">moment_filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">mom_states_x</span><span class="p">,</span> <span class="n">mom_states_y</span><span class="p">,</span> <span class="n">mom_states_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment_file_paser</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">)</span>
+                    <span class="n">output_mom_states</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">output_mom_states</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;mom_states_x&#39;</span><span class="p">,</span> <span class="n">mom_states_x</span><span class="p">)</span>
+                    <span class="n">output_mom_states</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;mom_states_y&#39;</span><span class="p">,</span> <span class="n">mom_states_y</span><span class="p">)</span>
+                    <span class="n">output_mom_states</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;mom_states_z&#39;</span><span class="p">,</span> <span class="n">mom_states_z</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;mom_states_traj&#39;</span><span class="p">,</span> <span class="n">output_mom_states</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;dmdata&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">dmdata_out_file</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="c1"># parse dmdata.xx.out</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parsing &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dmdata_out_file</span><span class="p">))</span>
+                <span class="k">with</span> <span class="n">output_folder</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">dmdata_out_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">atom_site_A</span><span class="p">,</span> <span class="n">atom_site_B</span><span class="p">,</span> <span class="n">Jij_x</span><span class="p">,</span> <span class="n">Jij_y</span><span class="p">,</span> <span class="n">Jij_z</span><span class="p">,</span> <span class="n">DM_x</span><span class="p">,</span> <span class="n">DM_y</span><span class="p">,</span> <span class="n">DM_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dm_out_parser</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span> <span class="o">=</span> <span class="n">ArrayData</span><span class="p">()</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;atom_site_A&#39;</span><span class="p">,</span> <span class="n">atom_site_A</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;atom_site_B&#39;</span><span class="p">,</span> <span class="n">atom_site_B</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Jij_x&#39;</span><span class="p">,</span> <span class="n">Jij_x</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Jij_y&#39;</span><span class="p">,</span> <span class="n">Jij_y</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;Jij_z&#39;</span><span class="p">,</span> <span class="n">Jij_z</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;DM_x&#39;</span><span class="p">,</span> <span class="n">DM_x</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;DM_y&#39;</span><span class="p">,</span> <span class="n">DM_y</span><span class="p">)</span>
+                    <span class="n">dmdata_out</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="s1">&#39;DM_z&#39;</span><span class="p">,</span> <span class="n">DM_z</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s1">&#39;dmdata_out&#39;</span><span class="p">,</span> <span class="n">dmdata_out</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ExitCode</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Qichen Xu.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
