@@ -1,7 +1,7 @@
-UppASD_AiiDA
+API\_docs
 ============
 
 .. toctree::
    :maxdepth: 4
 
-   UppASD_AiiDA
+   API_doc
