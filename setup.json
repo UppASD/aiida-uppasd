@@ -29,7 +29,9 @@
         "six",
         "voluptuous",
         "numpy",
-        "pandas"
+        "pandas",
+        "sphinxemoji",
+        "sphinxcontrib-youtube"
     ],
     "extras_require": {
         "testing": [
