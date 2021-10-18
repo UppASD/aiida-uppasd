@@ -2,7 +2,7 @@
 Run with traditional UppASD input files 
 ========================================
 
-A Traditional UppASD input folder looks like:
+A traditional UppASD input folder looks like:
 
 ::
 

@@ -13,7 +13,7 @@ Then you could install the plugin into your |:computer:| directly or within some
     
     pip install -e .
 
-After the installation is finished, you need to use reentry to update AiiDA's entry point:
+After the installation is finished, you need to use reentry to update AiiDA's entry point (before that please make sure you have install and set the aiida profile correctly):
 
 .. code-block::
 
