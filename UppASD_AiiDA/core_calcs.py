@@ -42,8 +42,11 @@ class UppASD(CalcJob):
                    help='list of excepted filenames')
         spec.input('inpsd_dict', valid_type=Dict,
                    help='the dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})
+        spec.input('exchange', valid_type=Dict,
+                   help='the dict of exchange.dat', required=False)
         spec.input('retrieve_list_name', valid_type=List,
                    help='list of output file name')
+        
         # output sections:
         spec.output('totenergy', valid_type=ArrayData, required=False,
                     help='all data that stored in totenergy.out')
@@ -106,6 +109,7 @@ class UppASD(CalcJob):
 
         calcinfo = datastructures.CalcInfo()
         local_list = []
+        user_define_dict_name_list = []
         auto_name = globals()
         input_filenames = self.find_out_files(
             self.inputs.prepared_file_folder.value, self.inputs.except_filenames.get_list())
@@ -113,14 +117,30 @@ class UppASD(CalcJob):
         for name in input_filenames:
             auto_name[name] = SinglefileData(
                 file=os.path.join(self.inputs.prepared_file_folder.value, name)).store()
+
+        #J_ij exchange parameters
+        if 'exchange' not in input_filenames:  # nothing in inpsd dict
+            #note that we take the inpsd.dat first, that means if we have both inpsd dict and inpsd.dat file we only use inpsd.dat file
+            # Create input file: inpsd.dat
+            with folder.open('exchange', 'a+') as f:   #here input_filename is an input option not a list
+                for flag in self.inputs.exchange.attributes_keys():
+                    f.write(f'{self.inputs.exchange[flag]}\n')
+            user_define_dict_name_list.append('exchange') #for activation of  'exchange' flag 
+
+
+
+
         if 'inpsd' not in input_filenames:  # nothing in inpsd dict
             #note that we take the inpsd.dat first, that means if we have both inpsd dict and inpsd.dat file we only use inpsd.dat file
             # Create input file: inpsd.dat
-            with folder.open(self.options.input_filename, 'a+') as f:
+            with folder.open(self.options.input_filename, 'a+') as f:   #here input_filename is an input option not a list
                 for flag in self.inputs.inpsd_dict.attributes_keys():
                     f.write(f'{flag}'+f'    {self.inputs.inpsd_dict[flag]}\n')
                 for name in input_filenames:
                     f.write(f'{name}    ./{name}\n')
+                for name_ud in user_define_dict_name_list:
+                    f.write(f'{name_ud}    ./{name_ud}\n')
+
 
         for name in input_filenames:
             if str(name) != 'inpsd':
