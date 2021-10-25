@@ -99,6 +99,7 @@ Then you need to write your functions for single calculation:
 then you write one simple workchain here:
 
 .. code-block::
+
     @workfunction
     def HeisChain_auto(atom_number_list,ip_mode,J_ij_pair_list):
         for atom_n in atom_number_list:
@@ -118,7 +119,7 @@ then you write one simple workchain here:
         
     HeisChain_auto(atom_number_list,ip_mode,J_ij_pair_list)
 
-Then you could visualize your result like:
+Then you could visualize some of your results like:
 
 ..  youtube:: NeUzDa7Peu4
     :width: 640
