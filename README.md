@@ -16,3 +16,5 @@ If you use this plugin for your research, please cite the following work:
 
 .. highlights:: Qichen Xu, Anders Bergman, Jonathan Chico, Anna Delin,
    Jornal Name XXX, YYYY (Year).
+
+Docs: https://aiida-uppasd.readthedocs.io/
