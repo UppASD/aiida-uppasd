@@ -40,16 +40,16 @@ After that you need to use your parser function to parse the outputfile to AiiDA
 
 .. code-block::
 
-if '**' in name:
-               **_filename = name
-                # parse **.xx.out
-                self.logger.info("Parsing '{}'".format(**_filename))
-                with output_folder.open(**_filename, 'rb') as f:
-                    **= self.**_file_paser(
-                        f)
-                    ** = ArrayData()
-                    **.set_array('**', **)
-                self.out('**', **)
+    if '**' in name:
+                **_filename = name
+                    # parse **.xx.out
+                    self.logger.info("Parsing '{}'".format(**_filename))
+                    with output_folder.open(**_filename, 'rb') as f:
+                        **= self.**_file_paser(
+                            f)
+                        ** = ArrayData()
+                        **.set_array('**', **)
+                    self.out('**', **)
 
 Then you need go back to plugin's root dir re-install the plugin into your |:computer:| like use:
 
