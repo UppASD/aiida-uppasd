@@ -16,7 +16,8 @@ The current version is intent to allows UppASD users to, e.g., deal with data pr
 
 The UPPASD program contains a suite of tools to simulate magnetic phenomena on an atomistic level. Its rich feature list involves state-of-the-art Monte Carlo and Atomistic Spin Dynamics (ASD) simulations. The program can be used for determining critical temperatures of materials as well as identifying magnetic ground states as well as exploring the magnetization dynamics in complex materials. It can also be used to both simulate and calculate, by means of linear spin-wave theory, the magnon dispersion relations for magnetic materials.
 
-Our ambition includes but not limited in giving it possibility to improve ab initio studies with UppASD and AiiDA for atomistic magnetic phenomena.
+Our ambition includes but not limited in giving it possibility to improve ab initio studies with UppASD and AiiDA and bring data-driven methods to the domain of atomistic magnetic phenomena.
+
 
 ..  youtube:: EMyZZxV_kmM
     :width: 640

@@ -8,17 +8,17 @@ You could find all parsers in /UppASD_AiiDA/core_parser.py file, once you find y
 
 .. code-block::
 
-class UppASD(CalcJob):
-    .......
-    ....
-    ..
-    def define(cls, spec):  
-    ....
-    ...
-    .
-        # output sections:
-        spec.output('**', valid_type=**, required=False,
-                    help='**')
+    class UppASD(CalcJob):
+        .......
+        ....
+        ..
+        def define(cls, spec):  
+        ....
+        ...
+        .
+            # output sections:
+            spec.output('**', valid_type=**, required=False,
+                        help='**')
 
 Replaced all '**' placeholders and make your a new output port for new parser.
 
