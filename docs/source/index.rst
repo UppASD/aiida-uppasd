@@ -18,13 +18,16 @@ The UPPASD program contains a suite of tools to simulate magnetic phenomena on a
 
 Our ambition includes but not limited in giving it possibility to improve ab initio studies with UppASD and AiiDA for atomistic magnetic phenomena.
 
+..  youtube:: EMyZZxV_kmM
+    :width: 640
+    :height: 480
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   _dev_guide/index
    _user_guide/index
+   _dev_guide/index
    API documentation <apidoc/UppASD_AiiDA>
 
 If you use this plugin for your research, please cite the following work:

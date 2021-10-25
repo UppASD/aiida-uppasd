@@ -146,19 +146,45 @@ class SpinDynamic_core_parser(Parser):
         atom_site_A = list(data_full[0])
         atom_site_B = list(data_full[1])
         #because dgl nodes is start from 0 so we need to use atom site minius 1 to fit DGL
+        #remove this in github repo
         atom_site_A[:] = [i-1 for i in atom_site_A]
         atom_site_B[:] = [i-1 for i in atom_site_B]
+
         atom_site_A = np.array(atom_site_A)
         atom_site_B = np.array(atom_site_B)
-        Jij_x = np.array(data_full[4])
-        Jij_y = np.array(data_full[5])
-        Jij_z = np.array(data_full[6])
+        rij_x = np.array(data_full[4])
+        rij_y = np.array(data_full[5])
+        rij_z = np.array(data_full[6])
         DM_x = np.array(data_full[7])
         DM_y = np.array(data_full[8])
         DM_z = np.array(data_full[9])
         return atom_site_A, atom_site_B, Jij_x, Jij_y, Jij_z, DM_x, DM_y, DM_z
 
-    
+    def struct_out_parser(self,struct_out_file):
+        """
+        :param dmdata_out_file dmdata file
+        :type dmdata_out_file opened output file
+        :return: np.array
+        """        
+       
+        data_full = pd.read_csv(struct_out_file, sep='\s+',
+                                header=None, skiprows=5)
+        atom_site_A = list(data_full[0])
+        atom_site_B = list(data_full[1])
+        #because dgl nodes is start from 0 so we need to use atom site minius 1 to fit DGL
+        #remove this in github repo
+        atom_site_A[:] = [i-1 for i in atom_site_A]
+        atom_site_B[:] = [i-1 for i in atom_site_B]
+
+        atom_site_A = np.array(atom_site_A)
+        atom_site_B = np.array(atom_site_B)
+        rij_x = np.array(data_full[4])
+        rij_y = np.array(data_full[5])
+        rij_z = np.array(data_full[6])
+        J_ij = np.array(data_full[7])
+        rij = np.array(data_full[8])
+        
+        return atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij 
     
 
 
@@ -277,17 +303,34 @@ class SpinDynamic_core_parser(Parser):
                 # parse dmdata.xx.out
                 self.logger.info("Parsing '{}'".format(dmdata_out_file))
                 with output_folder.open(dmdata_out_file, 'rb') as f:
-                    atom_site_A, atom_site_B, Jij_x, Jij_y, Jij_z, DM_x, DM_y, DM_z = self.dm_out_parser(
+                    atom_site_A, atom_site_B, rij_x, rij_y, rij_z, DM_x, DM_y, DM_z = self.dm_out_parser(
                         f)
                     dmdata_out = ArrayData()
                     dmdata_out.set_array('atom_site_A', atom_site_A)
                     dmdata_out.set_array('atom_site_B', atom_site_B)
-                    dmdata_out.set_array('Jij_x', Jij_x)
-                    dmdata_out.set_array('Jij_y', Jij_y)
-                    dmdata_out.set_array('Jij_z', Jij_z)
+                    dmdata_out.set_array('rij_x', rij_x)
+                    dmdata_out.set_array('rij_y', rij_y)
+                    dmdata_out.set_array('rij_z', rij_z)
                     dmdata_out.set_array('DM_x', DM_x)
                     dmdata_out.set_array('DM_y', DM_y)
                     dmdata_out.set_array('DM_z', DM_z)
                 self.out('dmdata_out', dmdata_out)
+
+
+            if 'struct' in name:
+                struct_out_file = name 
+                self.logger.info("Parsing '{}'".format(struct_out_file))
+                with output_folder.open(struct_out_file, 'rb') as f:
+                    atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij  = self.struct_out_parser(
+                        f)
+                    struct_out = ArrayData()
+                    struct_out.set_array('atom_site_A', atom_site_A)
+                    struct_out.set_array('atom_site_B', atom_site_B)
+                    struct_out.set_array('rij_x', rij_x)
+                    struct_out.set_array('rij_y', rij_y)
+                    struct_out.set_array('rij_z', rij_z)
+                    struct_out.set_array('J_ij', J_ij)
+                    struct_out.set_array('rij', rij)
+                self.out('struct_out', struct_out)
 
         return ExitCode(0)
