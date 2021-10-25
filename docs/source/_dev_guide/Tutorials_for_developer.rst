@@ -7,6 +7,7 @@ You could find all parsers in /UppASD_AiiDA/core_parser.py file, once you find y
 
 
 .. code-block::
+
 class UppASD(CalcJob):
     .......
     ....
@@ -38,6 +39,7 @@ Still replace the placeholder and write your own code.
 After that you need to use your parser function to parse the outputfile to AiiDA databse, add code block like:
 
 .. code-block::
+
 if '**' in name:
                **_filename = name
                 # parse **.xx.out
