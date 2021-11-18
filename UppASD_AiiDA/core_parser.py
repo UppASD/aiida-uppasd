@@ -166,23 +166,28 @@ class SpinDynamic_core_parser(Parser):
         :type dmdata_out_file opened output file
         :return: np.array
         """        
-       
-        data_full = pd.read_csv(struct_out_file, sep='\s+',
-                                header=None, skiprows=5)
-        atom_site_A = list(data_full[0])
-        atom_site_B = list(data_full[1])
-        #because dgl nodes is start from 0 so we need to use atom site minius 1 to fit DGL
-        #remove this in github repo
-        atom_site_A[:] = [i-1 for i in atom_site_A]
-        atom_site_B[:] = [i-1 for i in atom_site_B]
+        #Qichen: here I am not sure if that is needed to keep the code running except some empty outputfile
+        #so just one try here for test.
+        try:
+            data_full = pd.read_csv(struct_out_file, sep='\s+',
+                                    header=None, skiprows=5)
+            atom_site_A = list(data_full[0])
+            atom_site_B = list(data_full[1])
+            #because dgl nodes is start from 0 so we need to use atom site minius 1 to fit DGL
+            #remove this in github repo
+            atom_site_A[:] = [i-1 for i in atom_site_A]
+            atom_site_B[:] = [i-1 for i in atom_site_B]
 
-        atom_site_A = np.array(atom_site_A)
-        atom_site_B = np.array(atom_site_B)
-        rij_x = np.array(data_full[4])
-        rij_y = np.array(data_full[5])
-        rij_z = np.array(data_full[6])
-        J_ij = np.array(data_full[7])
-        rij = np.array(data_full[8])
+            atom_site_A = np.array(atom_site_A)
+            atom_site_B = np.array(atom_site_B)
+            rij_x = np.array(data_full[4])
+            rij_y = np.array(data_full[5])
+            rij_z = np.array(data_full[6])
+            J_ij = np.array(data_full[7])
+            rij = np.array(data_full[8])
+        except:
+            atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij =  np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([]),np.array([])
+        
         
         return atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij 
     
@@ -213,7 +218,7 @@ class SpinDynamic_core_parser(Parser):
                     output_coord = ArrayData()
                     output_coord.set_array('coord', coord)
                 self.out('coord', output_coord)
-            if 'qpoints' in name:
+            if 'qpoints' in name and 'qpointsdir' not in name:
                 qpoints_filename = name
                 # parse qpoints.xx.out
                 self.logger.info("Parsing '{}'".format(qpoints_filename))

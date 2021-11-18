@@ -1,5 +1,5 @@
 simid SCsurf_T
-ncell     128 128 1
+ncell     32 32 32
 BC        P         P         0                 Boundary conditions (0=vacuum,P=periodic)
 cell      1.00000   0.00000   0.00000 
           0.00000   1.00000   0.00000
@@ -33,3 +33,5 @@ qfile ./qfile
 plotenergy   1   
 
 do_avrg Y
+
+do_tottraj Y

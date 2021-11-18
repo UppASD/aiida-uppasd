@@ -19,6 +19,9 @@
         ],
         "aiida.parsers": [
             "UppASD_core_parsers = UppASD_AiiDA.core_parser:SpinDynamic_core_parser"
+        ],
+        "aiida.cmdline.data": [
+               "UppASD = UppASD_AiiDA.core_CLI:UppASD_cli"
         ]
     },
     "include_package_data": true,
