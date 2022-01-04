@@ -158,7 +158,7 @@ class SpinDynamic_core_parser(Parser):
         DM_x = np.array(data_full[7])
         DM_y = np.array(data_full[8])
         DM_z = np.array(data_full[9])
-        return atom_site_A, atom_site_B, Jij_x, Jij_y, Jij_z, DM_x, DM_y, DM_z
+        return atom_site_A, atom_site_B, rij_x, rij_y, rij_z, DM_x, DM_y, DM_z
 
     def struct_out_parser(self,struct_out_file):
         """
