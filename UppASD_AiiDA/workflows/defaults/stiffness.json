@@ -1,0 +1,7 @@
+{
+"ip_mode" : "N",
+"mode" : "N",
+"do_stiffness" : "Y",
+"eta_max" : 20,
+"eta_min" : 12,
+}

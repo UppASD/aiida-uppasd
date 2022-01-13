@@ -1,0 +1,15 @@
+{
+"mode" : "S",
+"temp" : 0.001,
+"damping" : 0.0001,
+"nstep" : 50000,
+"timestep" : 1e-16,
+"do_sc" : "Q",
+"do_sc_local_axis" : "Y",
+"sc_window_fun" : 2,
+"sc_local_axis_mix" : 0.0,
+"sc_average" : "F",
+"sc_nstep" : 1000,
+"sc_step" : 25,
+"do_ams" : "Y",
+}

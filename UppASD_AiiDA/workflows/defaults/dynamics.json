@@ -1,0 +1,10 @@
+{
+"mode" : "S",
+"damping" : 0.0001,
+"nstep" : 100000,
+"timestep" : 1e-16,
+"do_avrg" : "Y",
+"avrg_step" : 1000,
+"do_tottraj" : "Y",
+"tottraj_step" : 1000,
+}

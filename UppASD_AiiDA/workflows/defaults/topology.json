@@ -1,0 +1,7 @@
+{
+"mode" : "S",
+"damping" : 0.5,
+"nstep" : 50000,
+"timestep" : 1e-16,
+"skyno" : "T",
+}

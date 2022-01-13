@@ -1,0 +1,10 @@
+{
+"mode" : "S",
+"damping" : 0.0,
+"nstep" : 10000,
+"timestep" : 1e-16,
+"do_sc" : "C",
+"do_sc_local_axis" : "Y",
+"sc_sep" : 50,
+"qpoints" : "C",
+}
