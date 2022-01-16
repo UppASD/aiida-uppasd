@@ -67,8 +67,8 @@ class UppASD(CalcJob):
         spec.output('struct_out', valid_type=ArrayData, required=False,
                     help='all data that stored in dmdata_xx.out')
 
-        spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
-                       message='Calculation did not produce all expected output files.')
+        #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
+                       #message='Calculation did not produce all expected output files.')
 
 
     def find_out_files(self,filepath, except_files=[]):
