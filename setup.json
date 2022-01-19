@@ -15,13 +15,13 @@
     "version": "0.1.0",
     "entry_points": {
         "aiida.calculations": [
-            "UppASD_core_calculations = aiida_uppasd.core_calcs:UppASD"
+            "UppASD_core_calculations = aiida_uppasd.calculations.core_calcs:UppASD"
         ],
         "aiida.parsers": [
-            "UppASD_core_parsers = aiida_uppasd.core_parser:SpinDynamic_core_parser"
+            "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:SpinDynamic_core_parser"
         ],
         "aiida.cmdline.data": [
-               "UppASD = aiida_uppasd.core_CLI:UppASD_cli"
+               "UppASD = aiida_uppasd.tools.core_CLI:UppASD_cli"
         ],
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain"
