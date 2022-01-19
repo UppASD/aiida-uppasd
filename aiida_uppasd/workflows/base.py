@@ -8,49 +8,52 @@ from aiida.plugins import CalculationFactory, GroupFactory
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
-class ASDBaseWorkChain(WorkChain):
+class ASDBaseWorkChain(BaseRestartWorkChain):
     """Base workchain first
     #Workchain to run an UppASD simulation with automated error handling and restarts.#"""
+    _process_class = ASDCalculation
+
     @classmethod
     def define(cls, spec):
         """Specify inputs and outputs."""
         super().define(spec)
+        spec.expose_inputs(cls._process_class,exclude=['metadata'])
         spec.input(
             'code',
             valid_type=orm.Code,
             help='the code to run UppASD (preset code on local computer or remote cluster)',
             required=True,
         )
-        spec.input(
-            'inpsd_dict',
-            valid_type=orm.Dict,
-            help='Dict for inputs',
-            required=False,
-        )
-        spec.input(
-            'exchange_dict',
-            valid_type=orm.Dict,
-            help='Dict for exchange',
-            required=False,
-        )
-        spec.input(
-            'prepared_file_folder',
-            valid_type=orm.Str,
-            help='folder name for prepared input files',
-            required=False,
-        )
-        spec.input(
-            'except_filenames',
-            valid_type=orm.List,
-            help='list of file name for exception',
-            required=False,
-        )
-        spec.input(
-            'r_l',
-            valid_type=orm.List,
-            help='list of file name for retrieve',
-            required=False,
-        )
+        # spec.input(
+        #     'inpsd_dict',
+        #     valid_type=orm.Dict,
+        #     help='Dict for inputs',
+        #     required=False,
+        # )
+        # spec.input(
+        #     'exchange_dict',
+        #     valid_type=orm.Dict,
+        #     help='Dict for exchange',
+        #     required=False,
+        # )
+        # spec.input(
+        #     'prepared_file_folder',
+        #     valid_type=orm.Str,
+        #     help='folder name for prepared input files',
+        #     required=False,
+        # )
+        # spec.input(
+        #     'except_filenames',
+        #     valid_type=orm.List,
+        #     help='list of file name for exception',
+        #     required=False,
+        # )
+        # spec.input(
+        #     'retrieve_list_name',
+        #     valid_type=orm.List,
+        #     help='list of file name for retrieve',
+        #     required=False,
+        # )
         spec.input(
             'input_filename',
             valid_type=orm.Str,
@@ -107,6 +110,9 @@ class ASDBaseWorkChain(WorkChain):
             cls.uppasd,
             cls.results,
         )
+
+        spec.expose_outputs(ASDCalculation)
+        '''
         spec.output('totenergy', valid_type=ArrayData,
                     help='all data that stored in totenergy.out')
         spec.output('coord', valid_type=ArrayData, required=False,
@@ -125,7 +131,7 @@ class ASDBaseWorkChain(WorkChain):
                     help='all data that stored in dmdata_xx.out')
         spec.output('struct_out', valid_type=ArrayData, required=False,
                     help='all data that stored in dmdata_xx.out')
-
+        '''
         spec.exit_code(400, 'WallTimeError', message='Hit the max wall time')
 
 
@@ -136,8 +142,8 @@ class ASDBaseWorkChain(WorkChain):
         builder.prepared_file_folder = self.inputs.prepared_file_folder
         builder.except_filenames = self.inputs.except_filenames
         builder.inpsd_dict = self.inputs.inpsd_dict
-        builder.exchange = self.inputs.exchange_dict
-        builder.retrieve_list_name = self.inputs.r_l
+        builder.exchange = self.inputs.exchange
+        builder.retrieve_list_name = self.inputs.retrieve_list_name
         builder.metadata.options.resources ={'num_machines': self.inputs.num_machines.value,'num_mpiprocs_per_machine':self.inputs.num_mpiprocs_per_machine.value}
         builder.metadata.options.max_wallclock_seconds =self.inputs.max_wallclock_seconds.value
         builder.metadata.options.input_filename =self.inputs.input_filename.value
@@ -150,4 +156,4 @@ class ASDBaseWorkChain(WorkChain):
 
     def results(self):
         #for test we output total energy array in the workchain result
-        self.out("totenergy",self.ctx.uppasd_result.outputs.totenergy)
+        self.out_many(self.exposed_outputs(self.ctx.uppasd_result,ASDCalculation))
