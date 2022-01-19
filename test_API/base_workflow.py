@@ -41,7 +41,7 @@ input_uppasd = {
         'do_tottraj':Str('Y'),
         'tottraj_step': Int(1),
     }),
-    'exchange_dict' : orm.Dict(dict={
+    'exchange' : orm.Dict(dict={
     '1':Str('1 1  1.0       0.0       0.0      1.00000'),
     '2':Str('1 1 -1.0       0.0       0.0      1.00000'),
     '3':Str('1 1  0.0       1.0       0.0      1.00000'),
@@ -57,7 +57,7 @@ input_uppasd = {
     'description' :orm.Str('Test base workflow'),
     'prepared_file_folder' :Str(os.path.join(os.getcwd(),'demo3_input')),
     'except_filenames':List(list = []),
-    'r_l':List(list=[('*.out','.', 0)]),
+    'retrieve_list_name':List(list=[('*.out','.', 0)]),
 }
 
 

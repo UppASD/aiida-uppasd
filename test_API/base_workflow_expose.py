@@ -7,7 +7,7 @@ from aiida.common.lang import type_check
 from aiida.engine import  run,submit,ToContext, if_, while_, BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode
 from aiida.plugins import CalculationFactory, GroupFactory
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.base_expose import UppASDTaksWorkflow
+from aiida_uppasd.workflows.base_expose import UppASDTaskWorkflow
 import os
 aiida.load_profile()
 
@@ -61,5 +61,5 @@ input_uppasd = {
 }
 
 
-builder = UppASDTaksWorkflow.get_builder()
+builder = UppASDTaskWorkflow.get_builder()
 job_node = submit(builder,**input_uppasd)
