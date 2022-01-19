@@ -4,6 +4,10 @@
 # Import numpy for array handling
 import numpy as np
 from sys import stdout,stderr
+from aiida.orm import StructureData
+from aiida import load_profile
+from aiida.tools.data.array import kpoints
+from aiida.tools import spglib_tuple_to_structure,get_kpoints_path,get_explicit_kpoints_path
 
 def d2e(d):
     """Convert Fortran double precision exponents to Python single
@@ -171,13 +175,43 @@ if __name__ == '__main__':
         dict_to_JSON(inpdict,f)
     
     # Write dict to inpsd format to screen
-    dict_to_inpsd(inpdict,f)
+    ### dict_to_inpsd(inpdict)
     
     # Setup structure for later use (spglib or aiida DataStructure)
     if 'posfile' in inpdict.keys():
         positions,numbers = read_posfile(inpdict['posfile'])
-        lattice=inpdict['cell']
-        spgcell=(lattice,positions,numbers)
+        cell=inpdict['cell']
+        pbc=[]
+        for entry in inpdict['bc']:
+            pbc.append(entry=='P')
+        print('pbc:',pbc)
+        spgcell=(cell,positions,numbers)
         #spacegroup = spg.get_spacegroup(spgcell, symprec=1e-5)
+        load_profile()
+        ### structure = StructureData(cell=cell)
+        ### for pos in positions:
+        ###     structure.append_atom(position=pos,symbols='Fe')
+        ### print('----------')
+        ### print(structure.cell)
+        ### print(structure.sites)
+        ### print(structure.sites[0])
+        ### print('----------')
+
+        structure=spglib_tuple_to_structure(spgcell)
+        structure.set_pbc(pbc)
+        print('----------')
+        print(structure.pbc)
+        print(structure.cell)
+        print(structure.sites)
+        print('----------')
+        #kp=get_explicit_kpoints_path(structure,method='legacy')
+        kp=get_kpoints_path(structure,method='seekpath')
+        print(kp.keys())
+        print(kp['parameters']['point_coords'])
+        print(kp['parameters']['path'])
+        ### print(kp['primitive_structure'].cell)
+        ### print(kp['primitive_structure'].sites)
+        ### print(kp['explicit_kpoints'].labels)
+
 
 
