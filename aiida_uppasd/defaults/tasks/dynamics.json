@@ -6,5 +6,5 @@
 "do_avrg" : "Y",
 "avrg_step" : 1000,
 "do_tottraj" : "Y",
-"tottraj_step" : 1000,
+"tottraj_step" : 1000
 }

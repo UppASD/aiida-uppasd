@@ -6,5 +6,5 @@
 "do_sc" : "C",
 "do_sc_local_axis" : "Y",
 "sc_sep" : 50,
-"qpoints" : "C",
+"qpoints" : "C"
 }

@@ -4,5 +4,5 @@
 "nstep" : 50000,
 "timestep" : 1e-16,
 "plotenergy" : 1,
-"do_cumu" : "Y",
+"do_cumu" : "Y"
 }
