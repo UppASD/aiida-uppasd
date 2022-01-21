@@ -33,7 +33,9 @@ class UppASDTaskWorkflow(WorkChain):
         )
 
     def load_defaults(self):
+        from pathlib import Path
         ### Preparing to include defaults from .json files
+        fpath=str(Path(__file__).resolve().parent.parent)+'/defaults/tasks/'
         ### fname='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/spinwaves.json'
         ### with open(fname,'r') as f:
         ###     tmp_dict=json.load(f)

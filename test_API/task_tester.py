@@ -22,7 +22,8 @@ input_uppasd = {
                 0.00000 1.00000 0.00000
                 0.00000 0.00000 1.00000'''),
         'maptype': Int(1),
-        'Initmag': Int(3)
+        'Initmag': Int(3),
+        'alat': Float(2.87e-10)
     }),
     'num_machines' :orm.Int(1),
     'num_mpiprocs_per_machine' :orm.Int(16),

@@ -38,6 +38,7 @@
         "voluptuous",
         "numpy",
         "pandas",
+        "pathlib",
         "sphinxemoji",
         "sphinxcontrib-youtube"
     ],

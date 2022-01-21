@@ -35,17 +35,9 @@ class UppASDSimpleTaskWorkflow(WorkChain):
             cls.results,
         )
 
-    def load_defaults(self):
-        fname='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/spinwaves.json'
-        with open(fname,'r') as f:
-            tmp_dict=json.load(f)
-        
-        tmp_dict.update(self.inputs.inpsd_temp.get_dict())
-        self.inputs.inpsd_dict = tmp_dict
-        return 
-
     def load_tasks(self):
-        fpath='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/'
+        from pathlib import Path
+        fpath=str(Path(__file__).resolve().parent.parent)+'/defaults/tasks/'
         task_dict={}
         for task in self.inputs.tasks:
             self.report(task)
