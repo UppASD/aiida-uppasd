@@ -52,8 +52,13 @@ def json_conv(s):
     elif(ty==np.ndarray):
         data=s.tolist()
     elif(ty==list):
-        data=s
-    return str(': '+str(data)+',')
+        # Special check for lists of characters
+        if(type(s[0])==str and len(s)==3):
+            data='[ "'+s[0]+'" , "'+s[1]+'" , "'+s[2]+'" ]'
+            #data=['"'+ss+'"' for ss in s]
+        else:
+            data=s
+    return str(' : '+str(data)+',')
 
 
 # Define keys that need more than one value
@@ -68,7 +73,9 @@ vecarg_list=['hfield',
 # Define keys that have a special list for input
 special_list=['ip_nphase',
               'ip_mcanneal',
-             'ntraj']
+             'ntraj',
+             'positions',
+             'moments']
 
 def inpsd_to_dict(f):
     """Read UppASD input to Python dict
@@ -139,7 +146,8 @@ def dict_to_JSON(inpdict,f=stdout):
     """
     print('{',file=f)
     for key in inpdict.keys():
-        print(dq(key),json_conv(inpdict[key]),file=f)
+        print('  ',dq(key),json_conv(inpdict[key]),file=f)
+    print('  "comment" : "Autoconverted UppASD dict"',file=f)
     print('}',file=f)
 
 
@@ -178,8 +186,18 @@ if __name__ == '__main__':
     ### dict_to_inpsd(inpdict)
     
     # Setup structure for later use (spglib or aiida DataStructure)
+    pos_exist=False
     if 'posfile' in inpdict.keys():
         positions,numbers = read_posfile(inpdict['posfile'])
+        pos_exist=True
+    elif 'positions' in inpdict.keys():
+        pos_arr=np.array(inpdict['positions'][1:])
+        positions = pos_arr[:,2:5]
+        numbers = pos_arr[:,1]
+        pos_exist=True
+
+
+    if pos_exist:
         cell=inpdict['cell']
         pbc=[]
         for entry in inpdict['bc']:

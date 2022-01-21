@@ -11,7 +11,7 @@ from aiida_uppasd.workflows.base import ASDBaseWorkChain
 import json
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
-class UppASDTaskWorkflow(WorkChain):
+class UppASDSimpleTaskWorkflow(WorkChain):
     """Base workchain first
     #Workchain to run an UppASD simulation with automated error handling and restarts.#"""
     _process_class = ASDCalculation
@@ -26,22 +26,38 @@ class UppASDTaskWorkflow(WorkChain):
         spec.input('inpsd_temp', valid_type=Dict,
                    help='temp dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})
 
+        spec.input('tasks', valid_type=List,
+                   help='task dict for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
+
         spec.outline(
-            cls.load_defaults,
+            cls.load_tasks,
             cls.run_ASDBaseWorkChain,
             cls.results,
         )
 
     def load_defaults(self):
-        ### Preparing to include defaults from .json files
-        ### fname='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/spinwaves.json'
-        ### with open(fname,'r') as f:
-        ###     tmp_dict=json.load(f)
-        ###
-        ### tmp_dict.update(self.inputs.inpsd_temp.get_dict())
-        ### self.inputs.inpsd_dict = tmp_dict
-        self.inputs.inpsd_dict = self.inputs.inpsd_temp.get_dict()
-        return
+        fname='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/spinwaves.json'
+        with open(fname,'r') as f:
+            tmp_dict=json.load(f)
+        
+        tmp_dict.update(self.inputs.inpsd_temp.get_dict())
+        self.inputs.inpsd_dict = tmp_dict
+        return 
+
+    def load_tasks(self):
+        fpath='/Users/andersb/Jobb/People/Qichen/aiida-uppasd/aiida_uppasd/workflows/defaults/'
+        task_dict={}
+        for task in self.inputs.tasks:
+            self.report(task)
+            fname=fpath+str(task)+'.json'
+            with open(fname,'r') as f:
+                self.report(fname)
+                tmp_dict=json.load(f)
+                task_dict.update(tmp_dict)
+        
+        task_dict.update(self.inputs.inpsd_temp.get_dict())
+        self.inputs.inpsd_dict = task_dict
+        return 
 
     def run_ASDBaseWorkChain(self):
 
@@ -50,7 +66,10 @@ class UppASDTaskWorkflow(WorkChain):
         inputs.prepared_file_folder = self.inputs.prepared_file_folder
         inputs.except_filenames = self.inputs.except_filenames
         inputs.inpsd_dict = Dict(dict=self.inputs.inpsd_dict)
-        inputs.exchange = self.inputs.exchange
+        try:
+            inputs.exchange = self.inputs.exchange
+        except:
+            pass
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
         ASDBaseWorkChain_result = self.submit(ASDBaseWorkChain, **inputs)
 

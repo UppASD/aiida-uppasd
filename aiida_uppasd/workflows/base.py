@@ -142,7 +142,10 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
         builder.prepared_file_folder = self.inputs.prepared_file_folder
         builder.except_filenames = self.inputs.except_filenames
         builder.inpsd_dict = self.inputs.inpsd_dict
-        builder.exchange = self.inputs.exchange
+        try:
+            builder.exchange = self.inputs.exchange
+        except:
+            pass
         builder.retrieve_list_name = self.inputs.retrieve_list_name
         builder.metadata.options.resources ={'num_machines': self.inputs.num_machines.value,'num_mpiprocs_per_machine':self.inputs.num_mpiprocs_per_machine.value}
         builder.metadata.options.max_wallclock_seconds =self.inputs.max_wallclock_seconds.value
@@ -157,3 +160,4 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
     def results(self):
         #for test we output total energy array in the workchain result
         self.out_many(self.exposed_outputs(self.ctx.uppasd_result,ASDCalculation))
+

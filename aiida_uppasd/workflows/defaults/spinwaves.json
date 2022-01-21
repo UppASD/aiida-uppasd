@@ -11,5 +11,5 @@
 "sc_average" : "F",
 "sc_nstep" : 1000,
 "sc_step" : 25,
-"do_ams" : "Y",
+"do_ams" : "Y"
 }
