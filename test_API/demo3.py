@@ -87,7 +87,7 @@ builder.metadata.options.resources = {'num_machines': 1,'num_mpiprocs_per_machin
 builder.metadata.options.max_wallclock_seconds = 60*30
 builder.metadata.options.input_filename = 'inpsd.dat'
 builder.metadata.options.parser_name = 'UppASD_core_parsers'
-builder.metadata.label = 'Demo7'
-builder.metadata.description = 'Test demo7 for UppASD-AiiDA'
+builder.metadata.label = 'Demo3'
+builder.metadata.description = 'Test demo3 for UppASD-AiiDA'
 job_node = submit(builder)
 print('Job submitted, PK: {}'.format(job_node.pk))
