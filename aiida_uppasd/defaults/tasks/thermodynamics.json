@@ -1,8 +1,4 @@
 {
-"mode" : "S",
-"damping" : 0.5,
-"nstep" : 50000,
-"timestep" : 1e-16,
 "plotenergy" : 1,
 "do_cumu" : "Y"
 }
