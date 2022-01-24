@@ -22,7 +22,7 @@ class SpinDynamic_core_parser(Parser):
 
 
     
-    def total_energy_file_paser(self,file_name_of_total_energy):
+    def total_energy_file_parser(self,file_name_of_total_energy):
         """
         :param file_name_of_total_energy 
         :type file_name_of_total_energy opened file
@@ -47,7 +47,7 @@ class SpinDynamic_core_parser(Parser):
         return Iter_num_totenergy, Tot, Exc, Ani, DM, PD, BiqDM, BQ, Dip, Zeeman, LSF, Chir
     
     
-    def coord_file_paser(self,file_name_of_coord):
+    def coord_file_parser(self,file_name_of_coord):
         """
         :param file_name_of_coord coord file 
         :type file_name_of_coord opened output file
@@ -60,7 +60,7 @@ class SpinDynamic_core_parser(Parser):
         return coord
     
     
-    def qpoints_file_paser(self,file_name_of_qpoints):
+    def qpoints_file_parser(self,file_name_of_qpoints):
         """
         :param file_name_of_qpoints points file
         :type file_name_of_qpoints opened output file
@@ -72,7 +72,7 @@ class SpinDynamic_core_parser(Parser):
         return qpoints
     
     
-    def qm_sweep_file_paser(self,file_name_of_qm_sweep):
+    def qm_sweep_file_parser(self,file_name_of_qm_sweep):
         """
         :param file_name_of_qm_sweep qm sweep file
         :type file_name_of_qm_sweep opened output file
@@ -87,7 +87,7 @@ class SpinDynamic_core_parser(Parser):
         return Q_vector, Energy_mRy
     
     
-    def qm_minima_file_paser(self,file_name_of_qm_minima):
+    def qm_minima_file_parser(self,file_name_of_qm_minima):
         """
         :param file_name_of_qm_minima qm minima file
         :type file_name_of_qm_minima opened output file
@@ -100,7 +100,7 @@ class SpinDynamic_core_parser(Parser):
         return Q_vector, Energy_mRy
     
     
-    def averages_file_paser(self,file_name_of_averages):
+    def averages_file_parser(self,file_name_of_averages):
         """
         :param file_name_of_averages averages file 
         :type file_name_of_averages opened output file
@@ -117,7 +117,7 @@ class SpinDynamic_core_parser(Parser):
         return Iter_num_average, M_x, M_y, M_z, M, M_stdv
     
     
-    def moment_file_paser(self,mom_out_file):
+    def moment_file_parser(self,mom_out_file):
         """
         :param mom_out_file moment file
         :type mom_out_file opened output file
@@ -214,7 +214,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse coord.xx.out
                 self.logger.info("Parsing '{}'".format(coord_filename))
                 with output_folder.open(coord_filename, 'rb') as f:
-                    coord = self.coord_file_paser(f)
+                    coord = self.coord_file_parser(f)
                     output_coord = ArrayData()
                     output_coord.set_array('coord', coord)
                 self.out('coord', output_coord)
@@ -223,7 +223,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse qpoints.xx.out
                 self.logger.info("Parsing '{}'".format(qpoints_filename))
                 with output_folder.open(qpoints_filename, 'rb') as f:
-                    qpoints = self.qpoints_file_paser(f)
+                    qpoints = self.qpoints_file_parser(f)
                     output_qpoints = ArrayData()
                     output_qpoints.set_array('qpoints', qpoints)
                 self.out('qpoints', output_qpoints)
@@ -232,7 +232,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse averages.xx.out
                 self.logger.info("Parsing '{}'".format(averages_filename))
                 with output_folder.open(averages_filename, 'rb') as f:
-                    Iter_num_average, M_x, M_y, M_z, M, M_stdv = self.averages_file_paser(
+                    Iter_num_average, M_x, M_y, M_z, M, M_stdv = self.averages_file_parser(
                         f)
                     output_averages = ArrayData()
                     output_averages.set_array(
@@ -248,7 +248,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse qm_sweep.xx.out
                 self.logger.info("Parsing '{}'".format(qm_sweep_filename))
                 with output_folder.open(qm_sweep_filename, 'rb') as f:
-                    Q_vector, Energy_mRy = self.qm_sweep_file_paser(f)
+                    Q_vector, Energy_mRy = self.qm_sweep_file_parser(f)
                     output_qm_sweep = ArrayData()
                     output_qm_sweep.set_array('Q_vector', Q_vector)
                     output_qm_sweep.set_array('Energy_mRy', Energy_mRy)
@@ -259,7 +259,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse qm_minima.xx.out
                 self.logger.info("Parsing '{}'".format(qm_minima_filename))
                 with output_folder.open(qm_minima_filename, 'rb') as f:
-                    Q_vector, Energy_mRy = self.qm_minima_file_paser(f)
+                    Q_vector, Energy_mRy = self.qm_minima_file_parser(f)
                     output_qm_minima = ArrayData()
                     output_qm_minima.set_array('Q_vector', Q_vector)
                     output_qm_minima.set_array('Energy_mRy', Energy_mRy)
@@ -270,7 +270,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse totenergy.xx.out
                 self.logger.info("Parsing '{}'".format(totenergy_filename))
                 with output_folder.open(totenergy_filename, 'rb') as f:
-                    Iter_num_totenergy, Tot, Exc, Ani, DM, PD, BiqDM, BQ, Dip, Zeeman, LSF, Chir = self.total_energy_file_paser(
+                    Iter_num_totenergy, Tot, Exc, Ani, DM, PD, BiqDM, BQ, Dip, Zeeman, LSF, Chir = self.total_energy_file_parser(
                         f)
                     output_totenergy = ArrayData()
                     output_totenergy.set_array(
@@ -295,7 +295,7 @@ class SpinDynamic_core_parser(Parser):
                 # parse moment.xx.out
                 self.logger.info("Parsing '{}'".format(moment_filename))
                 with output_folder.open(moment_filename, 'rb') as f:
-                    mom_states_x, mom_states_y, mom_states_z = self.moment_file_paser(
+                    mom_states_x, mom_states_y, mom_states_z = self.moment_file_parser(
                         f)
                     output_mom_states = ArrayData()
                     output_mom_states.set_array('mom_states_x', mom_states_x)

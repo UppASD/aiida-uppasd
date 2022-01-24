@@ -26,7 +26,7 @@ Then you could defined one parser function in core_parser file like:
 
 .. code-block::
     
-    def **_file_paser(self,file_name_of_**):
+    def **_file_parser(self,file_name_of_**):
         """
         your help comments here
         """        
@@ -45,7 +45,7 @@ After that you need to use your parser function to parse the outputfile to AiiDA
                     # parse **.xx.out
                     self.logger.info("Parsing '{}'".format(**_filename))
                     with output_folder.open(**_filename, 'rb') as f:
-                        **= self.**_file_paser(
+                        **= self.**_file_parser(
                             f)
                         ** = ArrayData()
                         **.set_array('**', **)
