@@ -7,7 +7,7 @@ from aiida.common.lang import type_check
 from aiida.engine import  run,submit,ToContext, if_, while_, BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode
 from aiida.plugins import CalculationFactory, GroupFactory
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.looptask import UppASDLoopTaskWorkflow
+from aiida_uppasd.workflows.temperature import UppASDTemperatureWorkflow
 import os
 aiida.load_profile()
 
@@ -37,11 +37,10 @@ input_uppasd = {
     'except_filenames':List(list = []),
     'retrieve_list_name':List(list=[('*.out','.', 0),('*.json','.', 0)]),
     'tasks':List(list=[ 'mc','thermodynamics']),
-    'loop_key' : Str('temp'),
-    'loop_values' : List(list=[ 0.001, 100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500])
+    'temperatures' : List(list=[ 0.001, 100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500])
 }
 
 #'tasks':List(list=[ 'stiffness','lswt'])
 
-builder = UppASDLoopTaskWorkflow.get_builder()
+builder = UppASDTemperatureWorkflow.get_builder()
 job_node = submit(builder,**input_uppasd)

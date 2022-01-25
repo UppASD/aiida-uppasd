@@ -1,6 +1,6 @@
 {
 "ip_mode" : "M",
-"ip_mcnstep" : 1000,
+"ip_mcnstep" : 10000,
 "mode" : "M",
-"mcnstep" : 1000
+"mcnstep" : 10000
 }

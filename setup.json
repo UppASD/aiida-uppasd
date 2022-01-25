@@ -26,7 +26,9 @@
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain",
             "uppasd.task_workflow = aiida_uppasd.workflows.base_expose:ASDBaseWorkChain",
-            "uppasd.simpletask_workflow = aiida_uppasd.workflows.simpletask:ASDBaseWorkChain"
+            "uppasd.simpletask_workflow = aiida_uppasd.workflows.simpletask:UppASDSimpleTaskWorkflow",
+            "uppasd.looptask_workflow = aiida_uppasd.workflows.looptask:UppASDLoopTaskWorkflow",
+            "uppasd.temperature_workflow = aiida_uppasd.workflows.looptask:UppASDTemperatureWorkflow"
         ]
     },
     "include_package_data": true,

@@ -30,7 +30,7 @@ def get_loop_data(**kwargs):
     return Dict(dict=outputs)
 
 
-class UppASDLoopTaskWorkflow(WorkChain):
+class UppASDTemperatureWorkflow(WorkChain):
     """Base workchain first
     #Workchain to run an UppASD simulation with automated error handling and restarts.#"""
     _process_class = ASDCalculation
@@ -40,7 +40,7 @@ class UppASDLoopTaskWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseWorkChain)
-        spec.expose_outputs(ASDBaseWorkChain,include=['totenergy','cumulants'])
+        spec.expose_outputs(ASDBaseWorkChain,include=['cumulants'])
 
         spec.input('inpsd_temp', valid_type=Dict,
                    help='temp dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})
@@ -48,18 +48,15 @@ class UppASDLoopTaskWorkflow(WorkChain):
         spec.input('tasks', valid_type=List,
                    help='task dict for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
 
-        spec.input('loop_key', valid_type=Str,
+        spec.input('temperatures', valid_type=List,
                    help='task dict for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
 
-        spec.input('loop_values', valid_type=List,
-                   help='task dict for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
-
-        spec.output('loop_output', valid_type=Dict, help='Result Dict for loops')  
+        spec.output('temperature_output', valid_type=Dict, help='Result Dict for temperature')  
 
 
         spec.outline(
                 cls.load_tasks,
-                cls.loop_tasks,
+                cls.loop_temperatures,
                 cls.results,
                 )
 
@@ -76,6 +73,10 @@ class UppASDLoopTaskWorkflow(WorkChain):
                 tmp_dict=json.load(f)
                 task_dict.update(tmp_dict)
         
+        # Override list of tasks to ensure that thermodynamic measurables are calculated
+        task_dict['do_cumu']='Y'
+        task_dict['plotenergy']=1
+
         task_dict.update(self.inputs.inpsd_temp.get_dict())
         self.inputs.inpsd_dict = task_dict
         return 
@@ -94,14 +95,14 @@ class UppASDLoopTaskWorkflow(WorkChain):
 
         return inputs
 
-    def loop_tasks(self):
+    def loop_temperatures(self):
 
         calculations = {}
 
-        for idx,value in enumerate(self.inputs.loop_values):
-            self.report('Running loop for variable {} with value {}'.format(self.inputs.loop_key.value,value))
-            self.inputs.inpsd_dict[self.inputs.loop_key.value] = value
-            self.inputs.inpsd_dict['ip_'+self.inputs.loop_key.value] = value
+        for idx,temperature in enumerate(self.inputs.temperatures):
+            self.report('Running loop for temperature with value {}'.format(temperature))
+            self.inputs.inpsd_dict['temp'] = temperature
+            self.inputs.inpsd_dict['ip_temp'] = temperature
             inputs=self.generate_inputs()
 
             future = self.submit(ASDBaseWorkChain, **inputs)
@@ -112,7 +113,7 @@ class UppASDLoopTaskWorkflow(WorkChain):
 
     def results(self):
         """Process results."""
-        inputs = { 'T'+str(idx): self.ctx['T'+str(idx)].get_outgoing().get_node_by_label('cumulants') for idx,label in enumerate(self.inputs.loop_values) }
-        loop_output = get_loop_data(**inputs)
+        inputs = { 'T'+str(idx): self.ctx['T'+str(idx)].get_outgoing().get_node_by_label('cumulants') for idx,label in enumerate(self.inputs.temperatures) }
+        temperature_output = get_loop_data(**inputs)
 
-        self.out('loop_output',loop_output)
+        self.out('temperature_output',temperature_output)
