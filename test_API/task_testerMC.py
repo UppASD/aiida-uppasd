@@ -37,7 +37,7 @@ input_uppasd = {
     'description' :orm.Str('Test base workflow'),
     'prepared_file_folder' :Str(os.path.join(os.getcwd(),'task1_input')),
     'except_filenames':List(list = []),
-    'retrieve_list_name':List(list=[('*.out','.', 0)]),
+    'retrieve_list_name':List(list=[('*.out','.', 0),('*.json','.', 0)]),
     'tasks':List(list=[ 'mc','thermodynamics'])
 }
 

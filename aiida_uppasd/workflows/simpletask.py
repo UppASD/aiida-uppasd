@@ -21,7 +21,7 @@ class UppASDSimpleTaskWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseWorkChain)
-        spec.expose_outputs(ASDBaseWorkChain,include=['totenergy'])
+        spec.expose_outputs(ASDBaseWorkChain,include=['totenergy','cumulants'])
 
         spec.input('inpsd_temp', valid_type=Dict,
                    help='temp dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})

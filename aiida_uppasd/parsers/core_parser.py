@@ -3,9 +3,10 @@ Parser for UppASD
 '''
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-from aiida.orm import ArrayData
+from aiida.orm import ArrayData, Dict
 import numpy as np
 import pandas as pd
+import json
 
 class SpinDynamic_core_parser(Parser):
     """    
@@ -209,6 +210,8 @@ class SpinDynamic_core_parser(Parser):
         retrived_file_name_list = output_folder.list_object_names()
 
         for name in retrived_file_name_list:
+            print('File name in output list: {}'.format(name))
+            self.logger.info('File name in output list: {}'.format(name))
             if 'coord' in name:
                 coord_filename = name
                 # parse coord.xx.out
@@ -337,5 +340,14 @@ class SpinDynamic_core_parser(Parser):
                     struct_out.set_array('J_ij', J_ij)
                     struct_out.set_array('rij', rij)
                 self.out('struct_out', struct_out)
+
+            if 'cumulant' in name and not 'out' in name:
+                cumulant_file = name 
+                self.logger.info("Parsing '{}'".format(cumulant_file))
+                with output_folder.open(cumulant_file,'rb') as f:
+                    cumulants=json.load(f)
+
+                self.out('cumulants',Dict(dict=cumulants))
+            
 
         return ExitCode(0)

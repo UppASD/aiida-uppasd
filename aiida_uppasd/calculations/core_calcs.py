@@ -66,6 +66,8 @@ class UppASD(CalcJob):
                     help='all data that stored in dmdata_xx.out')
         spec.output('struct_out', valid_type=ArrayData, required=False,
                     help='all data that stored in dmdata_xx.out')
+        spec.output('cumulants', valid_type=Dict, required=False,
+                    help='Thermodynamoc data stored in dict')
 
         #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
                        #message='Calculation did not produce all expected output files.')
