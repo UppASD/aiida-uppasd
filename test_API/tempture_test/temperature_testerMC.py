@@ -44,3 +44,9 @@ input_uppasd = {
 
 builder = UppASDTemperatureWorkflow.get_builder()
 job_node = submit(builder,**input_uppasd)
+
+print('UppASDTemperatureWorkflow submitted, PK: {}'.format(job_node.pk))
+with open('UppASDTemperatureWorkflow_jobPK.csv', 'w') as f:
+    f.write(str(job_node.pk))
+
+
