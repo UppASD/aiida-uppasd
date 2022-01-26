@@ -37,7 +37,7 @@ input_uppasd = {
     'except_filenames':List(list = []),
     'retrieve_list_name':List(list=[('*.out','.', 0),('*.json','.', 0)]),
     'tasks':List(list=[ 'mc','thermodynamics']),
-    'temperatures' : List(list=[ 0.001, 100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500])
+    'temperatures' : List(list=[ 0.001, 100,200,300,400,500,600,700,800,850,900,950,1000,1100,1200,1300,1400,1500])
 }
 
 #'tasks':List(list=[ 'stiffness','lswt'])

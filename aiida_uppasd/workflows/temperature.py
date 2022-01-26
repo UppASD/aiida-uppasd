@@ -8,14 +8,19 @@ from aiida.plugins import CalculationFactory, GroupFactory
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
 from aiida_uppasd.workflows.base import ASDBaseWorkChain
 
+from numpy import gradient,asarray,insert
+from scipy import integrate
+from scipy.interpolate import InterpolatedUnivariateSpline
 import json
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
 
 
 @calcfunction
-def get_loop_data(**kwargs):
+def get_temperature_data(**kwargs):
     """Store loop data in Dict node."""
+
+    kb=1.38064852e-23/2.179872325e-21
 
     _labels = ['temperature','magnetization','binder_cumulant','susceptibility','specific_heat','energy']
 
@@ -26,6 +31,27 @@ def get_loop_data(**kwargs):
     for ldum, result in kwargs.items():
         for label in _labels:
             outputs[label].append(result[label])
+
+    # Also calculate specific heat (in k_B) from temperature gradient
+    T=asarray(outputs.temperature)+1.0e-12
+    U=asarray(outputs.energy)
+    C=gradient(U)/gradient(T)
+
+    # Calculate the entropy
+    dS=C/T
+    S=integrate.cumtrapz(y=dS,x=T)
+    # Use spline interpolation for improved low temperature behaviour
+    Sspline = InterpolatedUnivariateSpline(T[1:], S, k=3)
+    Si = Sspline(T)
+    S0 = Sspline(T[0])
+    S = Si-S0
+    F=U-T*S
+
+    # Store the gradient specific heat as 'dudt' as well as entropy and free energy
+    C=C/kb
+    outputs.dudt=C.tolist()
+    outputs.entropy=S.tolist()
+    outputs.free_e=F.tolist()
 
     return Dict(dict=outputs)
 
@@ -114,6 +140,6 @@ class UppASDTemperatureWorkflow(WorkChain):
     def results(self):
         """Process results."""
         inputs = { 'T'+str(idx): self.ctx['T'+str(idx)].get_outgoing().get_node_by_label('cumulants') for idx,label in enumerate(self.inputs.temperatures) }
-        temperature_output = get_loop_data(**inputs)
+        temperature_output = get_temperature_data(**inputs)
 
         self.out('temperature_output',temperature_output)
