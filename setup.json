@@ -28,7 +28,8 @@
             "uppasd.task_workflow = aiida_uppasd.workflows.base_expose:ASDBaseWorkChain",
             "uppasd.simpletask_workflow = aiida_uppasd.workflows.simpletask:UppASDSimpleTaskWorkflow",
             "uppasd.looptask_workflow = aiida_uppasd.workflows.looptask:UppASDLoopTaskWorkflow",
-            "uppasd.temperature_workflow = aiida_uppasd.workflows.looptask:UppASDTemperatureWorkflow"
+            "uppasd.temperature_workflow = aiida_uppasd.workflows.looptask:UppASDTemperatureWorkflow",
+            "uppasd.ferromagnet_workflow = aiida_uppasd.workflows.ferromagnet:UppASDFastFerroWorkflow"
         ]
     },
     "include_package_data": true,
