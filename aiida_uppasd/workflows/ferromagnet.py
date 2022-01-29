@@ -23,12 +23,14 @@ class UppASDFastFerroWorkflow(WorkChain):
         spec.expose_inputs(ASDBaseWorkChain)
 
         spec.input('inpsd_temp', valid_type=Dict,
-                   help='temp dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})
+                   help='temp dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})A
 
+        spec.expose_outputs(ASDBaseWorkChain)
 
         spec.outline(
             cls.load_fmtasks,
             cls.run_ASDBaseWorkChain,
+            cls.results,
         )
         #cls.results,
 

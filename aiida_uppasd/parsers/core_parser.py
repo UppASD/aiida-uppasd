@@ -3,7 +3,7 @@ Parser for UppASD
 '''
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-from aiida.orm import ArrayData, Dict
+from aiida.orm import ArrayData, Dict, BandsData
 import numpy as np
 import pandas as pd
 import json
@@ -72,6 +72,17 @@ class SpinDynamic_core_parser(Parser):
         qpoints = np.array(result)
         return qpoints
     
+    def ams_file_parser(self,file_name_of_ams):
+        """
+        :param file_name_of_ams points file
+        :type file_name_of_ams opened output file
+        :return: np array
+        """
+
+        result = pd.read_csv(file_name_of_ams, sep='\s+', header=None)
+        ams = np.array(result)
+
+        return ams
     
     def qm_sweep_file_parser(self,file_name_of_qm_sweep):
         """
@@ -346,8 +357,40 @@ class SpinDynamic_core_parser(Parser):
                 self.logger.info("Parsing '{}'".format(cumulant_file))
                 with output_folder.open(cumulant_file,'rb') as f:
                     cumulants=json.load(f)
-
                 self.out('cumulants',Dict(dict=cumulants))
+
+            if 'ams' in name[0:4]:
+                ams_filename = name
+                # parse qpoints.xx.out
+                self.logger.info("Parsing '{}'".format(ams_filename))
+                # Read qpoints to create BandsData object. TODO: exception handling
+                try:
+                    with output_folder.open('qpoints.out','rb') as qf:
+                        qpoints=self.qpoints_file_parser(qf)
+
+                    with output_folder.open(ams_filename, 'rb') as f:
+                        ams = self.ams_file_parser(f)
+
+                    output_ams = BandsData()
+                    output_ams.set_kpoints(qpoints[:,1:4])
+                    output_ams.set_bands(ams[:,1:-1],units='meV')
+                    ### Qfile is not available yet
+                    ### with output_folder.open('qfile','rb') as qf:
+                    ###     qp=pd.read_table(qf, sep='\s+', header=None,skiprows=1)
+
+                    ### qp.fillna(0, inplace=True)
+                    ### qa=np.array(qp)
+                    ### label_names=qa[qa[:,3]!=0,3]
+                    ### label_idx=np.where(qa[:,3]!=0)[0]
+                    ### labels=[]
+                    ### for l,i in zip(label_names.tolist(),label_idx.tolist()):
+                    ###     labels.append((i,l))
+                    ###output_ams.labels=labels
+
+                    self.out('ams', output_ams)
+                except Exception:
+                    print('No qpoint file found')
+                    pass
             
 
         return ExitCode(0)

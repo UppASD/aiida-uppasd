@@ -24,6 +24,7 @@ input_uppasd = {
         'maptype': Int(1),
         'Initmag': Int(3),
         'alat': Float(2.87e-10)
+
     }),
     'num_machines' :orm.Int(1),
     'num_mpiprocs_per_machine' :orm.Int(16),
@@ -42,3 +43,5 @@ input_uppasd = {
 
 builder = UppASDFastFerroWorkflow.get_builder()
 job_node = submit(builder,**input_uppasd)
+
+print('FerroMagnetWorkflow submitted, PK: {}'.format(job_node.pk))

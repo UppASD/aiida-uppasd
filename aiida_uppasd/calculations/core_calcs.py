@@ -1,6 +1,6 @@
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
+from aiida.orm import SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData, BandsData
 from os import listdir
 from os.path import isfile, join
 import os
@@ -52,6 +52,8 @@ class UppASD(CalcJob):
                     help='all data that stored in totenergy.out')
         spec.output('coord', valid_type=ArrayData, required=False,
                     help='all data that stored in coord.out')
+        spec.output('ams', valid_type=BandsData, required=False,
+                    help='Adiabatic magnon spectrum')
         spec.output('qpoints', valid_type=ArrayData, required=False,
                     help='all data that stored in qpoints.out')
         spec.output('averages', valid_type=ArrayData, required=False,
