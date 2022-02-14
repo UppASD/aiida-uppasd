@@ -7,7 +7,7 @@ from aiida.common.lang import type_check
 from aiida.engine import  run,submit,ToContext, if_, while_, BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode
 from aiida.plugins import CalculationFactory, GroupFactory
 from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.base import ASDBaseWorkChain
+from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 import os
 aiida.load_profile()
 
@@ -30,7 +30,7 @@ input_uppasd = {
         'mode': Str('S'),
         'temp': Float(300.000),
         'damping': Float(0.500),
-        'Nstep': Int(50000),
+        'Nstep': Int(1500),
         'timestep': Str('1.000d-16'),
         'hfield': Str('0.0 0.0 -150.0 '),
         'skyno': Str('Y'),
@@ -48,7 +48,7 @@ input_uppasd = {
     '4':Str('1 1  0.0      -1.0       0.0      1.00000'),
     }),
     'num_machines' :orm.Int(1),
-    'num_mpiprocs_per_machine' :orm.Int(4),
+    'num_mpiprocs_per_machine' :orm.Int(12),
     'max_wallclock_seconds' :orm.Int(30),
     #'code' :Code.get_from_string('uppasd_dev@uppasd_local'),
     'code' :Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021'),
@@ -61,6 +61,7 @@ input_uppasd = {
     'retrieve_list_name':List(list=[('*.out','.', 0)]),
 }
 
-builder = ASDBaseWorkChain.get_builder()
-job_node = submit(builder,**input_uppasd)
-print(job_node.pk)
+
+process = submit(ASDBaseRestartWorkChain,**input_uppasd)
+print("Submitted ASDBaseRestartWorkchain with PK {}".format(process.pk))
+

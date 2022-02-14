@@ -4,7 +4,7 @@ from aiida.orm import SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayDa
 from os import listdir
 from os.path import isfile, join
 import os
-
+import six
 class UppASD(CalcJob):
     """
     | AiiDA calculation plugin wrapping the SD executable (from UppASD packages).
@@ -70,10 +70,12 @@ class UppASD(CalcJob):
                     help='all data that stored in dmdata_xx.out')
         spec.output('cumulants', valid_type=Dict, required=False,
                     help='Thermodynamoc data stored in dict')
-
+        spec.output('cal_finish_tag', valid_type=Str, required=False,
+                    help='Tags to detect if calculation is finished or not')
+        
         #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
                        #message='Calculation did not produce all expected output files.')
-
+        spec.exit_code(451, 'WallTimeError', message='Hit the max wall time')
 
     def find_out_files(self,filepath, except_files=[]):
         """

@@ -3,11 +3,13 @@ Parser for UppASD
 '''
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-from aiida.orm import ArrayData, Dict, BandsData
+from aiida.orm import ArrayData, Dict, BandsData,Bool
 import numpy as np
 import pandas as pd
 import json
+from aiida.plugins import CalculationFactory
 
+ASDCalculation = CalculationFactory('UppASD_core_calculations')
 class SpinDynamic_core_parser(Parser):
     """    
     Note that, all the parser here are just demos,or in other word,  
@@ -216,9 +218,20 @@ class SpinDynamic_core_parser(Parser):
         """        
 
        #results = ArrayData()
+
         output_folder = self.retrieved
 
         retrived_file_name_list = output_folder.list_object_names()
+
+        #parser _scheduler-stdout.txt to detect if Simulation is finished or not
+        
+        with output_folder.open('_scheduler-stdout.txt', 'rb') as f:
+                    log = str(f.read())
+                    if 'Simulation finished' in log:
+                        pass
+                    else:
+                        return ASDCalculation.exit_codes.WallTimeError
+                
 
         for name in retrived_file_name_list:
             print('File name in output list: {}'.format(name))
