@@ -30,7 +30,7 @@ input_uppasd = {
         'mode': Str('S'),
         'temp': Float(300.000),
         'damping': Float(0.500),
-        'Nstep': Int(1500),
+        'Nstep': Int(1000),
         'timestep': Str('1.000d-16'),
         'hfield': Str('0.0 0.0 -150.0 '),
         'skyno': Str('Y'),
