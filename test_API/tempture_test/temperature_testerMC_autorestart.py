@@ -15,7 +15,7 @@ aiida.load_profile()
 input_uppasd = {
     'inpsd_temp' :orm.Dict(dict={
         'simid': Str('bccFe100'),
-        'ncell': Str('12 12 12'),
+        'ncell': Str('24 24 24'),
         'BC': Str('P         P         P '),
         'cell': Str('''1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
@@ -26,8 +26,8 @@ input_uppasd = {
         'alat': Float(2.87e-10)
     }),
     'num_machines' :orm.Int(1),
-    'num_mpiprocs_per_machine' :orm.Int(16),
-    'max_wallclock_seconds' :orm.Int(20),
+    'num_mpiprocs_per_machine' :orm.Int(1),
+    'max_wallclock_seconds' :orm.Int(5),
     #'code' :Code.get_from_string('uppasd_dev@uppasd_local'),
     'code' :Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021'),
     'input_filename' : orm.Str('inpsd.dat'),

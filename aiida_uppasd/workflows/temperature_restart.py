@@ -108,7 +108,7 @@ class UppASDTemperatureRestartWorkflow(WorkChain):
         return 
 
     def generate_inputs(self):
-        inputs = AttributeDict()
+        inputs = self.exposed_inputs(ASDBaseRestartWorkChain)#we need take input dict from the BaseRestartWorkchain, not a new one.
         inputs.code = self.inputs.code
         inputs.prepared_file_folder = self.inputs.prepared_file_folder
         inputs.except_filenames = self.inputs.except_filenames

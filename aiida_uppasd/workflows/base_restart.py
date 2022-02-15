@@ -64,14 +64,14 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
                     valid_type=orm.Int,
                     help='The resource in cluster to use',
                     required=False,
-                    default=lambda:orm.Int(16)
+                    #default=lambda:orm.Int(16)
                 )
         spec.input(
                     'num_machines',
                     valid_type=orm.Int,
                     help='The resource in cluster to use',
                     required=False,
-                    default=lambda:orm.Int(1)
+                    #default=lambda:orm.Int(1)
                 )            
             
         spec.input(
@@ -79,7 +79,7 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
             valid_type=orm.Int,
             help='wall-time limits(s)',
             required=False,
-            default=lambda: orm.Int(30 * 60)
+            #default=lambda: orm.Int(30 * 60)
         )
         #you could set the maximum iteration time (although it is defined within aiida's base restart workchain, I think it is still good to show here) 
         spec.input(
@@ -184,7 +184,7 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
         """
         self.report('WallTimeError happened')
         #1. simply restart this calculation for whole workflow
-        self.ctx.inputs['metadata']['options']['max_wallclock_seconds'] = self.inputs.max_wallclock_seconds.value + int(600)
+        self.ctx.inputs['metadata']['options']['max_wallclock_seconds'] = self.ctx.inputs['metadata']['options']['max_wallclock_seconds'] + int(600)
         self.report('600s has been added to maximum walltime and the calculation will restart')
 
         return ProcessHandlerReport(do_break=False)
