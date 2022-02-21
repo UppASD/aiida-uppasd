@@ -15,8 +15,9 @@ def cal_node_query(workchain_pk,attribute_name):
     qb.append(
         Dict,
         with_incoming='workflow_node',
-        tag = 'output_dict'
+        tag = 'workdict'
     )
+    
     return qb.all()
 
 with open('UppASDTemperatureWorkflow_jobPK.csv','r') as f:    
