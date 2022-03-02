@@ -41,7 +41,7 @@ input_uppasd = {
     "inpsd_ams": orm.Dict(
         dict={
             "simid": Str("bccFe100"),
-            "ncell": Str("12 12 12"),
+            "ncell": Str("20        20        20"),
             "BC": Str("P         P         P "),
             "cell": Str(
                 """1.00000 0.00000 0.00000
@@ -58,8 +58,8 @@ input_uppasd = {
             'qm_svec': Str('1   -1   0 '),
             'qm_nvec': Str('0  0  1'),
             'mode': Str('S'),
-            'temp': Float(0.01),
-            'damping': Float(0.500),
+            'temp': Float(50),
+            'damping': Float(0.01),
             'Nstep': Int(10000),
             'timestep': Str('1.000e-16'),
             'qpoints': Str('D'),
@@ -71,7 +71,7 @@ input_uppasd = {
             'do_sc_proj': Str('Q'),
             'magdos_freq': Int(5000),
             'sc_step': Int(20),
-            'sc_nstep': Int(2000),
+            'sc_nstep': Int(5000),
             'magdos_freq': Int(200),
             'magdos_sigma': Int(30),
         }
