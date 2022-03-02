@@ -46,6 +46,8 @@ class UppASD(CalcJob):
                    help='the dict of exchange.dat', required=False)
         spec.input('retrieve_list_name', valid_type=List,
                    help='list of output file name')
+        spec.input('AMSplot', valid_type=Bool,
+                   help='flag for plot ams or not', required=False)
         
         # output sections:
         spec.output('totenergy', valid_type=ArrayData, required=False,
@@ -70,6 +72,8 @@ class UppASD(CalcJob):
                     help='all data that stored in dmdata_xx.out')
         spec.output('cumulants', valid_type=Dict, required=False,
                     help='Thermodynamoc data stored in dict')
+        spec.output('AMS_plot_var', valid_type=Dict, required=False,
+                    help='AMS_plot data stored in dict')            
         spec.output('cal_finish_tag', valid_type=Str, required=False,
                     help='Tags to detect if calculation is finished or not')
         
@@ -127,10 +131,8 @@ class UppASD(CalcJob):
                 file=os.path.join(self.inputs.prepared_file_folder.value, name)).store()
 
         #J_ij exchange parameters
-        if 'exchange' not in input_filenames:  # nothing in inpsd dict
-            #note that we take the inpsd.dat first, that means if we have both inpsd dict and inpsd.dat file we only use inpsd.dat file
-            # Create input file: inpsd.dat
-            with folder.open('exchange', 'a+') as f:   #here input_filename is an input option not a list
+        if 'exchange' not in input_filenames:  
+            with folder.open('exchange', 'a+') as f:  
                 for flag in self.inputs.exchange.attributes_keys():
                     f.write(f'{self.inputs.exchange[flag]}\n')
             user_define_dict_name_list.append('exchange') #for activation of  'exchange' flag 

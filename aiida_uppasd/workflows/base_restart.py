@@ -193,6 +193,12 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
         except:
             pass
 
+        try:
+            AMSplot = self.inputs.AMSplot
+            self.ctx.inputs["AMSplot"] = AMSplot
+        except:
+            pass
+
     # here we may say our priority in workflow will start from 500 and wall time is the first one
     @process_handler(
         priority=500,

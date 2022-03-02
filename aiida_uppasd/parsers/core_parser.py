@@ -8,8 +8,13 @@ import numpy as np
 import pandas as pd
 import json
 from aiida.plugins import CalculationFactory
+import seekpath as spth
+
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
+
+# from UppASD repo postQ.py @Anders
+
 class SpinDynamic_core_parser(Parser):
     """    
     Note that, all the parser here are just demos,or in other word,  
@@ -206,9 +211,6 @@ class SpinDynamic_core_parser(Parser):
         return atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij 
     
 
-
-
-
     def parse(self, **kwargs):
         """IMPORTANT, All parser should be connect to the output port in core_calcs, 
          since all files have been retrieved into the retrieved folder, 
@@ -372,6 +374,7 @@ class SpinDynamic_core_parser(Parser):
                     cumulants=json.load(f)
                 self.out('cumulants',Dict(dict=cumulants))
 
+
             if 'ams' in name[0:4]:
                 ams_filename = name
                 # parse qpoints.xx.out
@@ -405,5 +408,104 @@ class SpinDynamic_core_parser(Parser):
                     print('No qpoint file found')
                     pass
             
+        #section AMS plot
+        #based on codes from UppASD repo postQ.py
+        #AMSplot is a Bool  like Bool('True')
+        try:
+            AMSplot_settings = self.node.inputs.AMSplot.value
+        except:
+            AMSplot_settings = False
+        if AMSplot_settings:
+            with output_folder.open('inpsd.dat', 'r') as infile:
+                lines=infile.readlines()
+                for idx,line in enumerate(lines):
+                    line_data=line.rstrip('\n').split()
+                    if len(line_data)>0:
+                        # Find the simulation id
+                        if(line_data[0]=='simid'):
+                            simid=line_data[1]
+                            #print('simid: ',simid)
+
+                        # Find the cell data
+                        if(line_data[0]=='cell'):
+                            cell=[]
+                            lattice=np.empty([0,3])
+                            line_data=lines[idx+0].split()
+                            cell=np.append(cell,np.asarray(line_data[1:4]))
+                            lattice=np.vstack((lattice,np.asarray(line_data[1:4])))
+                            line_data=lines[idx+1].split()
+                            cell=np.append(cell,np.asarray(line_data[0:3]))
+                            lattice=np.vstack((lattice,np.asarray(line_data[0:3])))
+                            line_data=lines[idx+2].split()
+                            cell=np.append(cell,np.asarray(line_data[0:3]))
+                            lattice=np.vstack((lattice,np.asarray(line_data[0:3])))
+                            #print('cell: ',cell)
+                            #print('lattice: ',lattice)
+
+                        # Find the size of the simulated cell
+                        if(line_data[0]=='ncell'):
+                            ncell_x=int(line_data[1])
+                            ncell_y=int(line_data[1])
+                            ncell_z=int(line_data[1])
+                            mesh=[ncell_x,ncell_y,ncell_z]
+
+                        if(line_data[0]=='timestep'):
+                            timestep=line_data[1]
+                            #print('timestep: ',timestep)
+
+                        if(line_data[0]=='sc_nstep'):
+                            sc_nstep=line_data[1]
+                            #print('sc_nstep: ',sc_nstep)
+
+                        if(line_data[0]=='sc_step'):
+                            sc_step=line_data[1]
+                            #print('sc_step: ',sc_step)
+
+                        # Read the name of the position file
+                        if(line_data[0].strip()=='posfile'):
+                            with output_folder.open('posfile', 'r') as pfile:
+                                lines=pfile.readlines()
+                                positions=np.empty([0,3])
+                                numbers=[]
+                                for idx,line in enumerate(lines):
+                                    line_data=line.rstrip('\n').split()
+                                    if len(line_data)>0:
+                                        positions=np.vstack((positions,np.asarray(line_data[2:5])))
+                                        numbers=np.append(numbers,np.asarray(line_data[1]))
+            hbar=4.135667662e-15
+            cell=(lattice,positions,numbers)
+            kpath_obj=spth.get_path(cell)
+            for name in retrived_file_name_list:
+                if 'ams' in name[0:4]:
+                    ams_filename = name
+                    with output_folder.open(ams_filename, 'rb') as f:
+                        ams_tempp=np.loadtxt(f)
+                        ams_dist_col=ams_tempp.shape[1]-1
+                if  'sqw' in name[0:4]:
+                    sqw_filename = name
+                    with output_folder.open(sqw_filename, 'rb') as f:
+                        sqw=np.genfromtxt(f,usecols=(0,4,5,6,7,8))
+                        nq=int(sqw[-1,0])
+                        nw=int(sqw[-1,1])
+                        sqw_x=np.reshape(sqw[:,2],(nq,nw))
+                        sqw_y=np.reshape(sqw[:,3],(nq,nw))
+                        sqw_z=np.reshape(sqw[:,4],(nq,nw))
+                        sqw_t=sqw_x**2+sqw_y**2
+
+            with output_folder.open('qfile', 'rb') as f:
+                    qpts=np.genfromtxt(f,skip_header=1,usecols=(0,1,2))
+            axlab=[]
+            axidx=[]
+            axidx_abs=[]
+            for idx,row in enumerate(qpts):
+                for k,v in kpath_obj['point_coords'].items():
+                    if (v==row).all():
+                        axlab.append(k[0])
+                        axidx.append(ams[idx,ams_dist_col])
+                        axidx_abs.append(ams[idx,0])
+            AMS_plot_var = Dict(dict = {'timestep':timestep,'sc_step':sc_step,'sqw_x':sqw_x,'sqw_y':sqw_y,'ams':ams,'axidx_abs':axidx_abs,'ams_dist_col':ams_dist_col,'axlab':axlab})
+            self.out('AMS_plot_var',AMS_plot_var)
+
+                
 
         return ExitCode(0)
