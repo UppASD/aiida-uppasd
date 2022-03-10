@@ -45,6 +45,8 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         
         spec.input('J_model', valid_type=Int,
                    help='flag for choose nearest Jij deepth', required=False)
+        spec.input('exchange_ams', valid_type=Dict,
+                   help='Dict to store Jij ', required=False)
         
         spec.input("plot_dir", valid_type=Str, help="plot dir ", required=False)
         
@@ -79,11 +81,10 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             inputs.exchange =  self.inputs.exchange_ams
             self.report('Running AMS with all possible Jij')
         else:
-            
             exchange_temp = {}
             for j_idx in range(self.inputs.J_model.value):
-                exchange_temp[str(j_idx+1)] = self.inputs.exchange_ams[str(j_idx+1)]
-            inputs.exchange  = exchange_temp 
+                exchange_temp.update(self.inputs.exchange_ams[str(j_idx+1)])
+            inputs.exchange  = Dict(dict=exchange_temp)
             self.report('Running AMS with J model {}'.format(self.inputs.J_model.value))
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
         return inputs
@@ -101,7 +102,6 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
     def results_and_plot(self):
         """Process results and basic plot"""
         AMS_plot_var_out = self.ctx['AMS'].get_outgoing().get_node_by_label('AMS_plot_var')
-
         timestep=AMS_plot_var_out.get_dict()['timestep']
         sc_step=AMS_plot_var_out.get_dict()['sc_step']
         sqw_x=AMS_plot_var_out.get_dict()['sqw_x']
@@ -110,7 +110,6 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         axidx_abs=AMS_plot_var_out.get_dict()['axidx_abs']
         ams_dist_col=AMS_plot_var_out.get_dict()['ams_dist_col']
         axlab=AMS_plot_var_out.get_dict()['axlab']
-        
         plot_dir =  self.inputs.plot_dir.value
         fig = plt.figure(figsize=[8,5])
         ax=plt.subplot(111)
@@ -129,7 +128,6 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         ams_t = np.array(ams_t)
         plt.plot(ams_t[:,0]/ams_t[-1,0]*axidx_abs[-1],ams_t[:,1:ams_dist_col],'white',lw=1)
         plt.colorbar()
-
         plt.xticks(axidx_abs,axlab)
         plt.xlabel('q')
         plt.ylabel('Energy (meV)')
