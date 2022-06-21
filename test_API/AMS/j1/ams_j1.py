@@ -31,7 +31,7 @@ from aiida.orm import (
     FolderData,
     RemoteData,
 )
-from aiida_uppasd.workflows.magnon_spectra import  UppASDMagnonSpectraRestartWorkflow
+from aiida_uppasd.workflows.magnon_spectra import UppASDMagnonSpectraRestartWorkflow
 import os
 
 aiida.load_profile()
@@ -137,7 +137,7 @@ j_2 = '''1 1 0 -1 -1 0.080402816 1.414
 2 1 1 0 2 0.110748457 1.658
 2 1 0 1 2 0.110748457 1.658
 2 1 1 1 2 0.110748457 1.658'''
-j_3='''1 1 -1 -1 -1 -0.226616190 1.732
+j_3 = '''1 1 -1 -1 -1 -0.226616190 1.732
 1 1 1 -1 -1 -0.226616190 1.732
 1 1 -1 1 -1 -0.226616190 1.732
 1 1 1 1 -1 -0.226616190 1.732
@@ -202,73 +202,119 @@ j_3='''1 1 -1 -1 -1 -0.226616190 1.732
 2 2 -1 1 1 -0.045906218 1.732
 2 2 1 1 1 -0.045906218 1.732'''
 input_uppasd = {
-    "inpsd_ams": Dict(
+    'inpsd_ams':
+    Dict(
         dict={
-            "simid": Str("FeCo"),
-            "ncell": Str("20        20        20"),
-            "BC": Str("P         P         P "),
-            "cell": Str(
-                """1.00000 0.00000 0.00000
+            'simid':
+            Str('FeCo'),
+            'ncell':
+            Str('20        20        20'),
+            'BC':
+            Str('P         P         P '),
+            'cell':
+            Str("""1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000"""
-            ),
-            'Mensemble': Int(1),
-            'maptype': Int(2),
-            'SDEalgh': Int(1),
-            'Initmag': Int(3),
-            'ip_mode': Str('M'),
-            'ip_temp':Int(100),
-            'ip_mcNstep':Int(5000),
-            'qm_svec': Str('1   -1   0 '),
-            'qm_nvec': Str('0  0  1'),
-            'mode': Str('S'),
-            'temp': Float(50),
-            'damping': Float(0.01),
-            'Nstep': Int(10000),
-            'timestep': Str('1.000e-16'),
-            'qpoints': Str('D'),
-            'plotenergy': Int(1),
-            'do_avrg': Str('Y'),
-            'do_sc': Str('Q'),
-            'do_ams': Str('Y'),
-            'do_magdos': Str('Y'),
-            'do_sc_proj': Str('Q'),
-            'magdos_freq': Int(5000),
-            'sc_step': Int(20),
-            'sc_nstep': Int(5000),
-            'magdos_freq': Int(200),
-            'magdos_sigma': Int(30),
-        }
-    ),
-    "num_machines": orm.Int(1),
-    "num_mpiprocs_per_machine": orm.Int(16),
-    "max_wallclock_seconds": orm.Int(2000),
-    "code": Code.get_from_string("uppasd_dev@uppasd_local"),
-    "input_filename": orm.Str("inpsd.dat"),
-    "parser_name": orm.Str("UppASD_core_parsers"),
-    "label": orm.Str("uppasd_base_workflow_demo"),
-    "description": orm.Str("Test base workflow"),
-    "prepared_file_folder": Str(os.path.join(os.getcwd(), "AMS_input")),
-    "except_filenames": List(list=[]),
-    "retrieve_list_name": List(list=[("*", ".", 0), ("*.json", ".", 0)]),
-    "J_model": Int(1),
-    "plot_dir":Str(current_path),
-    'AMSplot':Bool('True'),
-    'exchange_ams':Dict(dict=
-                    {'1':{'j_1':Str(j_1),},
-
-                    '2':{'j_2':Str(j_2),},
-
-                    '3':{'j_3':Str(j_3),}}
-                    )
+                0.00000 0.00000 1.00000"""),
+            'Mensemble':
+            Int(1),
+            'maptype':
+            Int(2),
+            'SDEalgh':
+            Int(1),
+            'Initmag':
+            Int(3),
+            'ip_mode':
+            Str('M'),
+            'ip_temp':
+            Int(100),
+            'ip_mcNstep':
+            Int(5000),
+            'qm_svec':
+            Str('1   -1   0 '),
+            'qm_nvec':
+            Str('0  0  1'),
+            'mode':
+            Str('S'),
+            'temp':
+            Float(50),
+            'damping':
+            Float(0.01),
+            'Nstep':
+            Int(10000),
+            'timestep':
+            Str('1.000e-16'),
+            'qpoints':
+            Str('D'),
+            'plotenergy':
+            Int(1),
+            'do_avrg':
+            Str('Y'),
+            'do_sc':
+            Str('Q'),
+            'do_ams':
+            Str('Y'),
+            'do_magdos':
+            Str('Y'),
+            'do_sc_proj':
+            Str('Q'),
+            'magdos_freq':
+            Int(5000),
+            'sc_step':
+            Int(20),
+            'sc_nstep':
+            Int(5000),
+            'magdos_freq':
+            Int(200),
+            'magdos_sigma':
+            Int(30),
+        }),
+    'num_machines':
+    orm.Int(1),
+    'num_mpiprocs_per_machine':
+    orm.Int(16),
+    'max_wallclock_seconds':
+    orm.Int(2000),
+    'code':
+    Code.get_from_string('uppasd_dev@uppasd_local'),
+    'input_filename':
+    orm.Str('inpsd.dat'),
+    'parser_name':
+    orm.Str('UppASD_core_parsers'),
+    'label':
+    orm.Str('uppasd_base_workflow_demo'),
+    'description':
+    orm.Str('Test base workflow'),
+    'prepared_file_folder':
+    Str(os.path.join(os.getcwd(), 'AMS_input')),
+    'except_filenames':
+    List(list=[]),
+    'retrieve_list_name':
+    List(list=[('*', '.', 0), ('*.json', '.', 0)]),
+    'J_model':
+    Int(1),
+    'plot_dir':
+    Str(current_path),
+    'AMSplot':
+    Bool('True'),
+    'exchange_ams':
+    Dict(
+        dict={
+            '1': {
+                'j_1': Str(j_1),
+            },
+            '2': {
+                'j_2': Str(j_2),
+            },
+            '3': {
+                'j_3': Str(j_3),
+            }
+        })
 }
-
 
 #'tasks':List(list=[ 'stiffness','lswt'
 
 job_node = submit(UppASDMagnonSpectraRestartWorkflow, **input_uppasd)
 
-print("UppASDAMSPlotWorkflow submitted, PK: {}".format(job_node.pk))
-with open("UppASDAMSPlotWorkflow_jobPK.csv", "w") as f:
+print(f'UppASDAMSPlotWorkflow submitted, PK: {job_node.pk}')
+with open('UppASDAMSPlotWorkflow_jobPK.csv', 'w') as f:
     f.write(str(job_node.pk))
-

@@ -31,7 +31,7 @@ from aiida.orm import (
     FolderData,
     RemoteData,
 )
-from aiida_uppasd.workflows.Tempture_CellSize import N_workchain
+from aiida_uppasd.workflows.Tempture_CellSize import MCVariableCellWorkchain
 
 aiida.load_profile()
 import os
@@ -39,35 +39,36 @@ import os
 # get current path, it could change to whatever suitable path
 current_path = os.getcwd()
 # controllable input list
-N_workchain_input = {
-    "N_list": List(list=[8, 12, 16, 20, 24, 28, 32]),
-    "temp_list": List(
-        list=[
-            0.001,
-            100,
-            200,
-            300,
-            400,
-            500,
-            600,
-            700,
-            800,
-            850,
-            900,
-            950,
-            1000,
-            1100,
-            1200,
-            1300,
-            1400,
-            1500,
-        ]
-    ),
-    "plot_dir": Str(current_path),
+MCVariableCellWorkchain_input = {
+    'N_list':
+    List(list=[8, 12, 16, 20, 24, 28, 32]),
+    'temp_list':
+    List(list=[
+        0.001,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        850,
+        900,
+        950,
+        1000,
+        1100,
+        1200,
+        1300,
+        1400,
+        1500,
+    ]),
+    'plot_dir':
+    Str(current_path),
 }
 
-builder = N_workchain.get_builder()
+builder = MCVariableCellWorkchain.get_builder()
 
-process = submit(builder, **N_workchain_input)
+process = submit(builder, **MCVariableCellWorkchain_input)
 
-print("N_workchain submitted, PK: {}".format(process.pk))
+print(f'MCVariableCellWorkchain submitted, PK: {process.pk}')

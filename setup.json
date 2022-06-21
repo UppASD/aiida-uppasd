@@ -18,7 +18,7 @@
             "UppASD_core_calculations = aiida_uppasd.calculations.core_calcs:UppASD"
         ],
         "aiida.parsers": [
-            "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:SpinDynamic_core_parser"
+            "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:UppASDBaseParser"
         ],
         "aiida.cmdline.data": [
                "UppASD = aiida_uppasd.tools.core_CLI:UppASD_cli"
