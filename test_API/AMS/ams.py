@@ -58,7 +58,7 @@ input_uppasd = {
             'qm_svec': Str('1   -1   0 '),
             'qm_nvec': Str('0  0  1'),
             'mode': Str('S'),
-            'temp': Float(50),
+            'temp': Float(100),
             'damping': Float(0.01),
             'Nstep': Int(10000),
             'timestep': Str('1.000e-16'),

@@ -13,7 +13,6 @@ import seekpath as spth
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
 
-# from UppASD repo postQ.py @Anders
 
 class SpinDynamic_core_parser(Parser):
     """    
@@ -210,6 +209,17 @@ class SpinDynamic_core_parser(Parser):
         
         return atom_site_A, atom_site_B, rij_x, rij_y, rij_z, J_ij, rij 
     
+    def sk_number_parser(self,sk_number_outfile):
+        """
+        :param sknumber.xxx.out
+        :return: float 
+        """       
+        data_full = pd.read_csv(sk_number_outfile, sep='\s+',
+                                header=None, skiprows=1)
+        sk_num = float(data_full[-1:][1])
+        sk_avg_num = float(data_full[-1:][2])
+        return sk_num,sk_avg_num
+
 
     def parse(self, **kwargs):
         """IMPORTANT, All parser should be connect to the output port in core_calcs, 
@@ -374,6 +384,17 @@ class SpinDynamic_core_parser(Parser):
                     cumulants=json.load(f)
                 self.out('cumulants',Dict(dict=cumulants))
 
+
+            if 'sknumber' in name:
+                sknumber_out_file = name
+                # parse dmdata.xx.out
+                self.logger.info("Parsing '{}'".format(sknumber_out_file))
+                with output_folder.open(sknumber_out_file, 'rb') as f:
+                    sk_num,sk_avg_num = self.sk_number_parser(
+                        f)
+                    sk_number_out = ArrayData()
+                    sk_number_out.set_array('sk_number_data', np.array([sk_num,sk_avg_num]))
+                self.out('sk_num_out', sk_number_out)
 
             if 'ams' in name[0:4]:
                 ams_filename = name

@@ -20,9 +20,7 @@
         "aiida.parsers": [
             "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:SpinDynamic_core_parser"
         ],
-        "aiida.cmdline.data": [
-               "UppASD = aiida_uppasd.tools.core_CLI:UppASD_cli"
-        ],
+
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain",
             "uppasd.task_workflow = aiida_uppasd.workflows.base_expose:ASDBaseWorkChain",

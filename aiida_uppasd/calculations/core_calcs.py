@@ -76,7 +76,7 @@ class UppASD(CalcJob):
                     help='AMS_plot data stored in dict')            
         spec.output('cal_finish_tag', valid_type=Str, required=False,
                     help='Tags to detect if calculation is finished or not')
-        
+        spec.output('sk_num_out',valid_type=ArrayData, help="skyrmions number ", required=False)
         #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
                        #message='Calculation did not produce all expected output files.')
         spec.exit_code(451, 'WallTimeError', message='Hit the max wall time')

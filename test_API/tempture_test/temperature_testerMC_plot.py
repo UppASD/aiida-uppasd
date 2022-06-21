@@ -26,7 +26,6 @@ try:
     plt.plot(data["temperature"], data["magnetization"], "x-")
     plt.title("temperature-magnetization")
     plt.savefig("temperature-magnetization.png")
-
     plt.close()
 
     plt.figure()
