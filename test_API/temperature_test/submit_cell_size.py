@@ -3,7 +3,7 @@
 import os
 from aiida import orm, load_profile
 from aiida.engine import submit
-from aiida_uppasd.workflows.Tempture_CellSize import MCVariableCellWorkchain
+from aiida_uppasd.workflows.temperature_cell_size import MCVariableCellWorkchain
 
 load_profile()
 

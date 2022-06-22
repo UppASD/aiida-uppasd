@@ -33,7 +33,7 @@ def visualization_observations(
     width: int,
     height: int,
     pk: int,
-):  # pylint: disable=too-many-arguments, too-many-branches
+):  # pylint: disable=too-many-arguments, too-many-branches, too-many-statements
     """
     Visualize a given observable
 

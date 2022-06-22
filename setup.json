@@ -21,7 +21,7 @@
             "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:UppASDBaseParser"
         ],
         "aiida.cmdline.data": [
-            "UppASD = aiida_uppasd.tools.core_CLI:uppasd_cli"
+            "UppASD = aiida_uppasd.tools.core_cli:uppasd_cli"
         ],
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain",

@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 """
 Set of helper functions for parsing the UppASD generated files.
 """
 import typing
 import numpy as np
 import pandas as pd
+
 
 def parser_array_file(
     handler,
@@ -32,6 +34,7 @@ def parser_array_file(
     )
     return result.values
 
+
 def parse_inpsd(handler) -> dict:
     """
     Parse the `inpsd.dat` input file for UppASD.
@@ -40,7 +43,7 @@ def parse_inpsd(handler) -> dict:
     :type handler: filelike object
     :return: dictionary with the parsed `inpsd.dat` data
     :rtype: dict
-    """    
+    """
     inpsd_data = {}
 
     lines = handler.readlines()
@@ -68,7 +71,6 @@ def parse_inpsd(handler) -> dict:
                 inpsd_data['cell'] = cell
                 inpsd_data['lattice'] = lattice
 
-
             # Find the size of the simulated cell
             if line_data[0] == 'ncell':
                 ncell_x = int(line_data[1])
@@ -89,6 +91,7 @@ def parse_inpsd(handler) -> dict:
 
     return inpsd_data
 
+
 def parse_posfile(handler) -> typing.Union[np.ndarray, np.ndarray]:
     """
     Parse the position file for UppASD.
@@ -97,7 +100,7 @@ def parse_posfile(handler) -> typing.Union[np.ndarray, np.ndarray]:
     :type handler: filelike object
     :return: the positions and atom numbers of the unit cell
     :rtype: typing.Union[np.ndarray, np.ndarray]
-    """    
+    """
     # Read the name of the position file
     lines = handler.readlines()
     positions = np.empty([0, 3])
