@@ -5,82 +5,91 @@ Created on Mon Aug 23 15:15:05 2021
 
 @author: qichen
 """
-from aiida.plugins import DataFactory, CalculationFactory
-from aiida.engine import run, submit, workfunction
-from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-import numpy as np
-import aiida
 import os
+import itertools
+from aiida import orm, load_profile
+from aiida.plugins import CalculationFactory
+from aiida.engine import submit, workfunction
 
-aiida.load_profile()
+load_profile()
 
 
-def calculate_single_trajectory(temp, hf):
-    code = Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021')
+def calculate_single_trajectory(temp: orm.Float, hfield: orm.Str):
+    """
+    Calculate the trajectory for a given temperature and magnetic field.
+
+    :param temp: value of the temperature
+    :type temp: orm.Float
+    :param hfield: value of the magnetic field
+    :type hfield: orm.Str
+    """
+    code = orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021')
     #code = Code.get_from_string('uppasd_nsc_2021@nsc_uppasd_2021')
     aiida_uppasd = CalculationFactory('UppASD_core_calculations')
     builder = aiida_uppasd.get_builder()
     #pre-prepared files folder:
-    prepared_file_folder = Str(os.path.join(os.getcwd(), 'demo7_input'))
-    except_filenames = List(list=[])
+    prepared_file_folder = orm.Str(os.path.join(os.getcwd(), 'demo7_input'))
+    except_filenames = orm.List(list=[])
     # inpsd.dat file selection
     inpsd_dict = {
         'simid':
-        Str('graphnetwork'),
+        orm.Str('graphnetwork'),
         'ncell':
-        Str('30 30 1'),
+        orm.Str('30 30 1'),
         'BC':
-        Str('P         P         0 '),
+        orm.Str('P         P         0 '),
         'cell':
-        Str('''1.00000 0.00000 0.00000
+        orm.Str(
+            '''1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000'''),
+                0.00000 0.00000 1.00000'''
+        ),
         'do_prnstruct':
-        Int(1),
+        orm.Int(1),
         'maptype':
-        Int(2),
+        orm.Int(2),
         'SDEalgh':
-        Int(1),
+        orm.Int(1),
         'Initmag':
-        Int(3),
+        orm.Int(3),
         'ip_mode':
-        Str('Y'),
+        orm.Str('Y'),
         'qm_svec':
-        Str('1   -1   0 '),
+        orm.Str('1   -1   0 '),
         'qm_nvec':
-        Str('0  0  1'),
+        orm.Str('0  0  1'),
         'mode':
-        Str('S'),
+        orm.Str('S'),
         'temp':
         temp,
         'damping':
-        Float(0.500),
+        orm.Float(0.500),
         'Nstep':
-        Int(10000),
+        orm.Int(10000),
         'timestep':
-        Str('1.000d-17'),
+        orm.Str('1.000d-17'),
         'hfield':
-        hf,
+        hfield,
         'skyno':
-        Str('Y'),
+        orm.Str('Y'),
         'qpoints':
-        Str('F'),
+        orm.Str('F'),
         'plotenergy':
-        Int(1),
+        orm.Int(1),
         'do_avrg':
-        Str('Y'),
+        orm.Str('Y'),
         #new added flags
         'do_tottraj':
-        Str('Y'),
+        orm.Str('Y'),
         'tottraj_step':
-        Int(10),
+        orm.Int(10),
     }
 
-    r_l = List(list=[('*.out', '.', 0)])
-    #we could use this to retrived all .out file to aiida
+    r_l = orm.List(list=[('*.out', '.', 0)])
+    #we could use this to retrieved all .out file to aiida
 
     # set up calculation
-    inpsd = Dict(dict=inpsd_dict)
+    inpsd = orm.Dict(dict=inpsd_dict)
     builder.code = code
     builder.prepared_file_folder = prepared_file_folder
     builder.except_filenames = except_filenames
@@ -88,7 +97,7 @@ def calculate_single_trajectory(temp, hf):
     builder.retrieve_list_name = r_l
     builder.metadata.options.resources = {
         'num_machines': 1,
-        'num_mpiprocs_per_machine': 8
+        'num_mpiprocs_per_machine': 8,
     }
     builder.metadata.options.max_wallclock_seconds = 60 * 55
     builder.metadata.options.input_filename = 'inpsd.dat'
@@ -100,16 +109,26 @@ def calculate_single_trajectory(temp, hf):
 
 
 @workfunction
-def prepare_for_graph_build(temp_list):
-    for t in temp_list.attributes['list']:
-        for h in hfield_list.attributes['list']:
-            calculate_single_trajectory(Float(t), Str(h))
+def prepare_for_graph_build(t_list: orm.List, h_list: orm.List):
+    """
+    Loop over the temperature and field
+
+    :param t_list: list with the temperature data
+    :type t_list: orm.List
+    :param h_list: list with the field data
+    :type h_list: orm.List
+    """
+    for temperature, hfield in itertools.product(
+        t_list.attributes['list'],
+        h_list.attributes['list'],
+    ):
+        calculate_single_trajectory(orm.Float(temperature), orm.Str(hfield))
 
 
-temp_list = List(list=list(range(0, 300, 5)))
+temp_list = orm.List(list=list(range(0, 300, 5)))
 hfield_l = []
 for i in range(-150, 150, 10):
     hfield_l.append(f'0.0 0.0 {i}')
-hfield_list = List(list=hfield_l)
+hfield_list = orm.List(list=hfield_l)
 
 prepare_for_graph_build(temp_list, hfield_list)

@@ -21,8 +21,7 @@ class UppASDSimpleTaskWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseWorkChain)
-        spec.expose_outputs(ASDBaseWorkChain,
-                            include=['totenergy', 'cumulants'])
+        spec.expose_outputs(ASDBaseWorkChain, include=['totenergy', 'cumulants'])
 
         spec.input(
             'inpsd_temp',
@@ -46,13 +45,10 @@ class UppASDSimpleTaskWorkflow(WorkChain):
 
     def load_tasks(self):
         """
-        _summary_
-
-        _extended_summary_
+        Load the default values for the workflow.
         """
 
-        fpath = str(
-            Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
+        fpath = str(Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
         task_dict = {}
         for task in self.inputs.tasks:
             self.report(task)
@@ -67,12 +63,7 @@ class UppASDSimpleTaskWorkflow(WorkChain):
 
     def run_base_workchain(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Perform a calculation using the base workchain.
         """
         inputs = AttributeDict()
         inputs.code = self.inputs.code
@@ -88,9 +79,6 @@ class UppASDSimpleTaskWorkflow(WorkChain):
 
     def results(self):
         """
-        _summary_
-
-        _extended_summary_
+        Expose the outputs from the base workchain to the parent.
         """
-        self.out_many(
-            self.exposed_outputs(self.ctx.asd_base_result, ASDBaseWorkChain))
+        self.out_many(self.exposed_outputs(self.ctx.asd_base_result, ASDBaseWorkChain))

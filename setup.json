@@ -21,7 +21,7 @@
             "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:UppASDBaseParser"
         ],
         "aiida.cmdline.data": [
-               "UppASD = aiida_uppasd.tools.core_CLI:UppASD_cli"
+            "UppASD = aiida_uppasd.tools.core_CLI:uppasd_cli"
         ],
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain",
@@ -46,17 +46,10 @@
     ],
     "extras_require": {
         "testing": [
-            "pgtest~=1.3.1",
-            "wheel~=0.31",
-            "coverage",
-            "pytest~=3.6,<5.0.0",
-            "pytest-cov"
+            "aiida-core[tests]>=1.1.0,<2.0.0"
         ],
         "pre-commit": [
-            "astroid==2.2.5",
-            "pre-commit==1.20.0",
-            "prospector==1.1.7",
-            "pylint==2.3.1"
+            "aiida-core[pre-commit]>=1.1.0,<2.0.0"
         ],
         "docs": [
             "sphinx",

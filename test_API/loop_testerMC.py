@@ -1,39 +1,37 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
-from aiida import orm
-import aiida
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import run, submit, ToContext, if_, while_, BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode
-from aiida.plugins import CalculationFactory, GroupFactory
-from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.looptask import UppASDLoopTaskWorkflow
 import os
-aiida.load_profile()
+from aiida import orm, load_profile
+from aiida.engine import submit
+from aiida_uppasd.workflows.looptask import UppASDLoopTaskWorkflow
+load_profile()
 
 input_uppasd = {
     'inpsd_temp':
     orm.Dict(
         dict={
             'simid':
-            Str('bccFe100'),
+            orm.Str('bccFe100'),
             'ncell':
-            Str('12 12 12'),
+            orm.Str('12 12 12'),
             'BC':
-            Str('P         P         P '),
+            orm.Str('P         P         P '),
             'cell':
-            Str('''1.00000 0.00000 0.00000
+            orm.Str(
+                '''1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000'''),
+                0.00000 0.00000 1.00000'''
+            ),
             'sym':
-            Int(1),
+            orm.Int(1),
             'maptype':
-            Int(1),
+            orm.Int(1),
             'Initmag':
-            Int(3),
+            orm.Int(3),
             'alat':
-            Float(2.87e-10)
-        }),
+            orm.Float(2.87e-10)
+        }
+    ),
     'num_machines':
     orm.Int(1),
     'num_mpiprocs_per_machine':
@@ -41,7 +39,7 @@ input_uppasd = {
     'max_wallclock_seconds':
     orm.Int(2000),
     'code':
-    Code.get_from_string('uppasd_dev@uppasd_local'),
+    orm.Code.get_from_string('uppasd_dev@uppasd_local'),
     'input_filename':
     orm.Str('inpsd.dat'),
     'parser_name':
@@ -51,23 +49,35 @@ input_uppasd = {
     'description':
     orm.Str('Test base workflow'),
     'prepared_file_folder':
-    Str(os.path.join(os.getcwd(), 'task1_input')),
+    orm.Str(os.path.join(os.getcwd(), 'task1_input')),
     'except_filenames':
-    List(list=[]),
+    orm.List(list=[]),
     'retrieve_list_name':
-    List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
+    orm.List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
     'tasks':
-    List(list=['mc', 'thermodynamics']),
+    orm.List(list=['mc', 'thermodynamics']),
     'loop_key':
-    Str('temp'),
+    orm.Str('temp'),
     'loop_values':
-    List(list=[
-        0.001, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200,
-        1300, 1400, 1500
+    orm.List(list=[
+        0.001,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900,
+        1000,
+        1100,
+        1200,
+        1300,
+        1400,
+        1500,
     ])
 }
-
-#'tasks':List(list=[ 'stiffness','lswt'])
 
 builder = UppASDLoopTaskWorkflow.get_builder()
 job_node = submit(builder, **input_uppasd)

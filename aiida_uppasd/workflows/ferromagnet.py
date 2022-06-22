@@ -40,13 +40,10 @@ class UppASDFastFerroWorkflow(WorkChain):
 
     def load_fmtasks(self):
         """
-        _summary_
-
-        _extended_summary_
+        Load the default values for the workflow.
         """
 
-        fpath = str(
-            Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
+        fpath = str(Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
         task_dict = {}
 
         _fm_tasks = ['tc_mfa', 'stiffness', 'lswt']
@@ -63,12 +60,7 @@ class UppASDFastFerroWorkflow(WorkChain):
 
     def run_base_workchain(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Perform a calculation using the base workchain.
         """
         inputs = AttributeDict()
         inputs.code = self.inputs.code
@@ -80,17 +72,13 @@ class UppASDFastFerroWorkflow(WorkChain):
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
 
         self.report('Running FM analysis')
-        ASDBaseWorkChain_result = self.submit(ASDBaseWorkChain, **inputs)
+        asd_base_result = self.submit(ASDBaseWorkChain, **inputs)
 
-        return ToContext(ASDBaseWorkChain_result=ASDBaseWorkChain_result)
+        return ToContext(asd_base_result=asd_base_result)
 
     def results(self):
         """
-        _summary_
-
-        _extended_summary_
+        Expose the outputs from the base workchain to the parent.
         """
         #for test we output total energy array in the workchain result
-        self.out_many(
-            self.exposed_outputs(self.ctx.ASDBaseWorkChain_result,
-                                 ASDBaseWorkChain))
+        self.out_many(self.exposed_outputs(self.ctx.asd_base_result, ASDBaseWorkChain))

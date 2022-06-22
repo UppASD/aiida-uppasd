@@ -1,78 +1,77 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
-from aiida import orm
-import aiida
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import run, submit, ToContext, if_, while_, BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode
-from aiida.plugins import CalculationFactory, GroupFactory
-from aiida.orm import Code, SinglefileData, Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.base_expose import UppASDTaskWorkflow
 import os
-aiida.load_profile()
+from aiida import orm, load_profile
+from aiida.engine import submit
+from aiida_uppasd.workflows.base_expose import UppASDTaskWorkflow
+load_profile()
 
 input_uppasd = {
     'inpsd_temp':
     orm.Dict(
         dict={
             'simid':
-            Str('sky'),
+            orm.Str('sky'),
             'ncell':
-            Str('30 30 1'),
+            orm.Str('30 30 1'),
             'BC':
-            Str('P         P         0 '),
+            orm.Str('P         P         0 '),
             'cell':
-            Str('''1.00000 0.00000 0.00000
+            orm.Str(
+                '''1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000'''),
+                0.00000 0.00000 1.00000'''
+            ),
             'do_prnstruct':
-            Int(1),
+            orm.Int(1),
             'maptype':
-            Int(2),
+            orm.Int(2),
             'SDEalgh':
-            Int(1),
+            orm.Int(1),
             'Initmag':
-            Int(3),
+            orm.Int(3),
             'ip_mode':
-            Str('Y'),
+            orm.Str('Y'),
             'qm_svec':
-            Str('1   -1   0 '),
+            orm.Str('1   -1   0 '),
             'qm_nvec':
-            Str('0  0  1'),
+            orm.Str('0  0  1'),
             'mode':
-            Str('S'),
+            orm.Str('S'),
             'temp':
-            Float(300.000),
+            orm.Float(300.000),
             'damping':
-            Float(0.500),
+            orm.Float(0.500),
             'Nstep':
-            Int(1000),
+            orm.Int(1000),
             'timestep':
-            Str('1.000d-16'),
+            orm.Str('1.000d-16'),
             'hfield':
-            Str('0.0 0.0 -150.0 '),
+            orm.Str('0.0 0.0 -150.0 '),
             'skyno':
-            Str('Y'),
+            orm.Str('Y'),
             'qpoints':
-            Str('F'),
+            orm.Str('F'),
             'plotenergy':
-            Int(1),
+            orm.Int(1),
             'do_avrg':
-            Str('Y'),
+            orm.Str('Y'),
             #new added flags
             'do_tottraj':
-            Str('Y'),
+            orm.Str('Y'),
             'tottraj_step':
-            Int(1),
-        }),
+            orm.Int(1),
+        }
+    ),
     'exchange':
     orm.Dict(
         dict={
-            '1': Str('1 1  1.0       0.0       0.0      1.00000'),
-            '2': Str('1 1 -1.0       0.0       0.0      1.00000'),
-            '3': Str('1 1  0.0       1.0       0.0      1.00000'),
-            '4': Str('1 1  0.0      -1.0       0.0      1.00000'),
-        }),
+            '1': orm.Str('1 1  1.0       0.0       0.0      1.00000'),
+            '2': orm.Str('1 1 -1.0       0.0       0.0      1.00000'),
+            '3': orm.Str('1 1  0.0       1.0       0.0      1.00000'),
+            '4': orm.Str('1 1  0.0      -1.0       0.0      1.00000'),
+        }
+    ),
     'num_machines':
     orm.Int(1),
     'num_mpiprocs_per_machine':
@@ -80,7 +79,7 @@ input_uppasd = {
     'max_wallclock_seconds':
     orm.Int(2000),
     'code':
-    Code.get_from_string('uppasd_dev@uppasd_local'),
+    orm.Code.get_from_string('uppasd_dev@uppasd_local'),
     'input_filename':
     orm.Str('inpsd.dat'),
     'parser_name':
@@ -90,11 +89,11 @@ input_uppasd = {
     'description':
     orm.Str('Test base workflow'),
     'prepared_file_folder':
-    Str(os.path.join(os.getcwd(), 'demo3_input')),
+    orm.Str(os.path.join(os.getcwd(), 'demo3_input')),
     'except_filenames':
-    List(list=[]),
+    orm.List(list=[]),
     'retrieve_list_name':
-    List(list=[('*.out', '.', 0)]),
+    orm.List(list=[('*.out', '.', 0)]),
 }
 
 builder = UppASDTaskWorkflow.get_builder()

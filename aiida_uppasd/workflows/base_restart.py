@@ -134,11 +134,11 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
         if not self.ctx.is_finished and self.ctx.iteration >= max_iterations:
             self.report(
                 f'reached the maximum number of iterations {max_iterations}: '
-                f'last ran {self.ctx.process_name}<{node.pk}>')
+                f'last ran {self.ctx.process_name}<{node.pk}>'
+            )
             return self.exit_codes.ERROR_MAXIMUM_ITERATIONS_EXCEEDED  # pylint: disable=no-member
 
-        self.report(
-            f'work chain completed after {self.ctx.iteration} iterations')
+        self.report(f'work chain completed after {self.ctx.iteration} iterations')
 
         exposed_outputs = self.exposed_outputs(node, self.process_class)
 
@@ -166,13 +166,10 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
             'metadata': {
                 'options': {
                     'resources': {
-                        'num_machines':
-                        self.inputs.num_machines.value,
-                        'num_mpiprocs_per_machine':
-                        self.inputs.num_mpiprocs_per_machine.value,
+                        'num_machines': self.inputs.num_machines.value,
+                        'num_mpiprocs_per_machine': self.inputs.num_mpiprocs_per_machine.value,
                     },
-                    'max_wallclock_seconds':
-                    self.inputs.max_wallclock_seconds.value,
+                    'max_wallclock_seconds': self.inputs.max_wallclock_seconds.value,
                     'input_filename': self.inputs.input_filename.value,
                     'parser_name': self.inputs.parser_name.value,
                 },
@@ -207,11 +204,7 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
         """
         self.report('WallTimeError happened')
         # 1. simply restart this calculation for whole workflow
-        self.ctx.inputs['metadata']['options'][
-            'max_wallclock_seconds'] = self.ctx.inputs['metadata']['options'][
-                'max_wallclock_seconds'] + int(600)
-        self.report(
-            '600s has been added to maximum walltime and the calculation will restart'
-        )
+        self.ctx.inputs['metadata']['options']['max_wallclock_seconds'] += int(600)
+        self.report('600s has been added to maximum walltime and the calculation will restart')
 
         return ProcessHandlerReport(do_break=False)

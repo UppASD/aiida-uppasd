@@ -23,8 +23,7 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
         spec.input(
             'code',
             valid_type=orm.Code,
-            help=
-            'the code to run UppASD (preset code on local computer or remote cluster)',
+            help='the code to run UppASD (preset code on local computer or remote cluster)',
             required=True,
         )
         spec.input(
@@ -98,11 +97,9 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
         builder.retrieve_list_name = self.inputs.retrieve_list_name
         builder.metadata.options.resources = {
             'num_machines': self.inputs.num_machines.value,
-            'num_mpiprocs_per_machine':
-            self.inputs.num_mpiprocs_per_machine.value,
+            'num_mpiprocs_per_machine': self.inputs.num_mpiprocs_per_machine.value,
         }
-        builder.metadata.options.max_wallclock_seconds = (
-            self.inputs.max_wallclock_seconds.value)
+        builder.metadata.options.max_wallclock_seconds = (self.inputs.max_wallclock_seconds.value)
         builder.metadata.options.input_filename = self.inputs.input_filename.value
         builder.metadata.options.parser_name = self.inputs.parser_name.value
         builder.metadata.label = self.inputs.label.value
@@ -112,6 +109,6 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
         return ToContext(uppasd_result=job_node)
 
     def results(self):
+        """Process results."""
         # for test we output total energy array in the workchain result
-        self.out_many(
-            self.exposed_outputs(self.ctx.uppasd_result, ASDCalculation))
+        self.out_many(self.exposed_outputs(self.ctx.uppasd_result, ASDCalculation))

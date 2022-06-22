@@ -1,64 +1,38 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
-from aiida import orm
-import aiida
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import (
-    run,
-    submit,
-    ToContext,
-    if_,
-    while_,
-    BaseRestartWorkChain,
-    process_handler,
-    ProcessHandlerReport,
-    ExitCode,
-)
-from aiida.plugins import CalculationFactory, GroupFactory
-from aiida.orm import (
-    Code,
-    SinglefileData,
-    Int,
-    Float,
-    Str,
-    Bool,
-    List,
-    Dict,
-    ArrayData,
-    XyData,
-    SinglefileData,
-    FolderData,
-    RemoteData,
-)
-from aiida_uppasd.workflows.temperature_restart import UppASDTemperatureRestartWorkflow
 import os
+from aiida import orm, load_profile
+from aiida.engine import submit
+from aiida_uppasd.workflows.temperature_restart import UppASDTemperatureRestartWorkflow
 
-aiida.load_profile()
+load_profile()
 
 input_uppasd = {
     'inpsd_temp':
     orm.Dict(
         dict={
             'simid':
-            Str('bccFe100'),
+            orm.Str('bccFe100'),
             'ncell':
-            Str('24 24 24'),
+            orm.Str('24 24 24'),
             'BC':
-            Str('P         P         P '),
+            orm.Str('P         P         P '),
             'cell':
-            Str("""1.00000 0.00000 0.00000
+            orm.Str(
+                """1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000"""),
+                0.00000 0.00000 1.00000"""
+            ),
             'sym':
-            Int(1),
+            orm.Int(1),
             'maptype':
-            Int(1),
+            orm.Int(1),
             'Initmag':
-            Int(3),
+            orm.Int(3),
             'alat':
-            Float(2.87e-10),
-        }),
+            orm.Float(2.87e-10),
+        }
+    ),
     'num_machines':
     orm.Int(1),
     'num_mpiprocs_per_machine':
@@ -67,7 +41,7 @@ input_uppasd = {
     orm.Int(5),
     #'code' :Code.get_from_string('uppasd_dev@uppasd_local'),
     'code':
-    Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021'),
+    orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021'),
     'input_filename':
     orm.Str('inpsd.dat'),
     'parser_name':
@@ -77,15 +51,15 @@ input_uppasd = {
     'description':
     orm.Str('Test base workflow'),
     'prepared_file_folder':
-    Str(os.path.join(os.getcwd(), 'task1_input')),
+    orm.Str(os.path.join(os.getcwd(), 'task1_input')),
     'except_filenames':
-    List(list=[]),
+    orm.List(list=[]),
     'retrieve_list_name':
-    List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
+    orm.List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
     'tasks':
-    List(list=['mc', 'thermodynamics']),
+    orm.List(list=['mc', 'thermodynamics']),
     'temperatures':
-    List(list=[
+    orm.List(list=[
         0.001,
         100,
         200,
@@ -106,8 +80,6 @@ input_uppasd = {
         1500,
     ]),
 }
-
-#'tasks':List(list=[ 'stiffness','lswt'])
 
 process = submit(UppASDTemperatureRestartWorkflow, **input_uppasd)
 

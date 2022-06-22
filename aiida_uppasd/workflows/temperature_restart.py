@@ -112,12 +112,9 @@ class UppASDTemperatureRestartWorkflow(WorkChain):
 
     def load_tasks(self):
         """
-        _summary_
-
-        _extended_summary_
+        Load the default values for the workflow.
         """
-        fpath = str(
-            Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
+        fpath = str(Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
         task_dict = {}
         for task in self.inputs.tasks:
             self.report(task)
@@ -136,12 +133,7 @@ class UppASDTemperatureRestartWorkflow(WorkChain):
 
     def generate_inputs(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Generate the inputs needed for the workchain
         """
         inputs = self.exposed_inputs(
             ASDBaseRestartWorkChain
@@ -158,18 +150,12 @@ class UppASDTemperatureRestartWorkflow(WorkChain):
 
     def loop_temperatures(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Submit a workchain for each of the temperatures to be studied
         """
         calculations = {}
 
         for idx, temperature in enumerate(self.inputs.temperatures):
-            self.report(
-                f'Running loop for temperature with value {temperature}')
+            self.report(f'Running loop for temperature with value {temperature}')
             self.inputs.inpsd_dict['temp'] = temperature
             self.inputs.inpsd_dict['ip_temp'] = temperature
             inputs = self.generate_inputs()
@@ -182,9 +168,7 @@ class UppASDTemperatureRestartWorkflow(WorkChain):
     def results(self):
         """Process results."""
         inputs = {
-            'T' + str(idx):
-            self.ctx['T' +
-                     str(idx)].get_outgoing().get_node_by_label('cumulants')
+            'T' + str(idx): self.ctx['T' + str(idx)].get_outgoing().get_node_by_label('cumulants')
             for idx, _ in enumerate(self.inputs.temperatures)
         }
         temperature_output = get_temperature_data(**inputs)

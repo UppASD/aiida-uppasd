@@ -29,6 +29,7 @@ from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 class UppASDMagnonSpectraRestartWorkflow(WorkChain):
     """Base workchain first
     #Workchain to run an UppASD simulation with automated error handling and restarts.#"""
+
     @classmethod
     def define(cls, spec):
         """Specify inputs and outputs."""
@@ -74,14 +75,12 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             cls.results_and_plot,
         )
 
-    def generate_inputs_and_validation_J_model(self):
+    def generate_inputs_and_validation_exchange_model(self):
         """
-        _summary_
+        Generate the inputs needed for the workchain
 
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        :return: the inputs to be used in the workchains
+        :rtype: AttributeDict
         """
         inputs = self.exposed_inputs(
             ASDBaseRestartWorkChain
@@ -102,22 +101,16 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             for j_idx in range(self.inputs.J_model.value):
                 exchange_temp.update(self.inputs.exchange_ams[str(j_idx + 1)])
             inputs.exchange = orm.Dict(dict=exchange_temp)
-            self.report(
-                f'Running AMS with J model {self.inputs.J_model.value}')
+            self.report(f'Running AMS with J model {self.inputs.J_model.value}')
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
         return inputs
 
     def submits(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Submit the calculations needed
         """
         calculations = {}
-        inputs = self.generate_inputs_and_validation_J_model()
+        inputs = self.generate_inputs_and_validation_exchange_model()
         future = self.submit(ASDBaseRestartWorkChain, **inputs)
         #modify here to make a loop if needed
         calculations['AMS'] = future
@@ -125,19 +118,18 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
 
     def results_and_plot(self):  # pylint: disable=too-many-locals
         """Process results and basic plot"""
-        AMS_plot_var_out = self.ctx['AMS'].get_outgoing().get_node_by_label(
-            'AMS_plot_var')
-        timestep = AMS_plot_var_out.get_dict()['timestep']
-        sc_step = AMS_plot_var_out.get_dict()['sc_step']
-        sqw_x = AMS_plot_var_out.get_dict()['sqw_x']
-        sqw_y = AMS_plot_var_out.get_dict()['sqw_y']
-        ams_t = AMS_plot_var_out.get_dict()['ams']
-        axidx_abs = AMS_plot_var_out.get_dict()['axidx_abs']
-        ams_dist_col = AMS_plot_var_out.get_dict()['ams_dist_col']
-        axlab = AMS_plot_var_out.get_dict()['axlab']
+        ams_plot_var_out = self.ctx['AMS'].get_outgoing().get_node_by_label('AMS_plot_var')
+        timestep = ams_plot_var_out.get_dict()['timestep']
+        sc_step = ams_plot_var_out.get_dict()['sc_step']
+        sqw_x = ams_plot_var_out.get_dict()['sqw_x']
+        sqw_y = ams_plot_var_out.get_dict()['sqw_y']
+        ams_t = ams_plot_var_out.get_dict()['ams']
+        axidx_abs = ams_plot_var_out.get_dict()['axidx_abs']
+        ams_dist_col = ams_plot_var_out.get_dict()['ams_dist_col']
+        axlab = ams_plot_var_out.get_dict()['axlab']
         plot_dir = self.inputs.plot_dir.value
         _ = plt.figure(figsize=[8, 5])
-        ax = plt.subplot(111)
+        axes = plt.subplot(111)
         hbar = float(4.135667662e-15)
         emax = 0.5 * float(hbar) / (float(timestep) * float(sc_step)) * 1e3
         #print('emax_sqw=',emax)
@@ -178,7 +170,7 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         plt.xlabel('q')
         plt.ylabel('Energy (meV)')
         plt.autoscale(tight=False)
-        ax.set_aspect('auto')
+        axes.set_aspect('auto')
         plt.grid(b=True, which='major', axis='x')
         plt.savefig(f'{plot_dir}/AMS.png')
         ams = self.ctx['AMS'].get_outgoing().get_node_by_label('ams')

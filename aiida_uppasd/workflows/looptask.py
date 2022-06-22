@@ -45,8 +45,7 @@ class UppASDLoopTaskWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseWorkChain)
-        spec.expose_outputs(ASDBaseWorkChain,
-                            include=['totenergy', 'cumulants'])
+        spec.expose_outputs(ASDBaseWorkChain, include=['totenergy', 'cumulants'])
 
         spec.input(
             'inpsd_temp',
@@ -90,12 +89,9 @@ class UppASDLoopTaskWorkflow(WorkChain):
 
     def load_tasks(self):
         """
-        _summary_
-
-        _extended_summary_
+        Load the default values for the inputs
         """
-        fpath = str(
-            Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
+        fpath = str(Path(__file__).resolve().parent.parent) + '/defaults/tasks/'
         task_dict = {}
         for task in self.inputs.tasks:
             self.report(task)
@@ -110,12 +106,10 @@ class UppASDLoopTaskWorkflow(WorkChain):
 
     def generate_inputs(self):
         """
-        _summary_
+        Generate the inputs for the workchain
 
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        :return: inputs for the workchain
+        :rtype: AttributeDict
         """
         inputs = AttributeDict()
         inputs.code = self.inputs.code
@@ -130,19 +124,13 @@ class UppASDLoopTaskWorkflow(WorkChain):
 
     def loop_tasks(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Submit the calculations.
         """
         calculations = {}
 
         for idx, value in enumerate(self.inputs.loop_values):
-            self.report(
-                f'Running loop for variable {self.inputs.loop_key.value} with value {value}'
-            )
+            _msg = f'Running loop for variable {self.inputs.loop_key.value} with value {value}'
+            self.report(_msg)
             self.inputs.inpsd_dict[self.inputs.loop_key.value] = value
             self.inputs.inpsd_dict['ip_' + self.inputs.loop_key.value] = value
             inputs = self.generate_inputs()
@@ -155,9 +143,7 @@ class UppASDLoopTaskWorkflow(WorkChain):
     def results(self):
         """Process results."""
         inputs = {
-            'T' + str(idx):
-            self.ctx['T' +
-                     str(idx)].get_outgoing().get_node_by_label('cumulants')
+            'T' + str(idx): self.ctx['T' + str(idx)].get_outgoing().get_node_by_label('cumulants')
             for idx, _ in enumerate(self.inputs.loop_values)
         }
         loop_output = get_loop_data(**inputs)

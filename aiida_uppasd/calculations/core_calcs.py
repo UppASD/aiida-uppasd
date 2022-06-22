@@ -15,6 +15,7 @@ class UppASD(CalcJob):
     :param CalcJob: father class
     :type CalcJob: aiida.engine.CalcJob class
     """
+
     @classmethod
     def define(cls, spec):
         """
@@ -177,9 +178,7 @@ class UppASD(CalcJob):
         if '.DS_Store' not in except_files:
             except_files.append('.DS_Store')
         filenames = [
-            f for f in os.listdir(filepath)
-            if (os.path.isfile(os.path.join(filepath, f))
-                and f not in except_files)
+            f for f in os.listdir(filepath) if (os.path.isfile(os.path.join(filepath, f)) and f not in except_files)
         ]
         return filenames
 
@@ -205,30 +204,32 @@ class UppASD(CalcJob):
         auto_name = globals()
         input_filenames = self.find_out_files(
             self.inputs.prepared_file_folder.value,
-            self.inputs.except_filenames.get_list())
+            self.inputs.except_filenames.get_list(),
+        )
 
         for name in input_filenames:
-            auto_name[name] = orm.SinglefileData(file=os.path.join(
-                self.inputs.prepared_file_folder.value, name)).store()
+            _filename = os.path.join(
+                self.inputs.prepared_file_folder.value,
+                name,
+            )
+            auto_name[name] = orm.SinglefileData(file=_filename).store()
 
         #J_ij exchange parameters
         if 'exchange' not in input_filenames:
             with folder.open('exchange', 'a+') as handler:
                 for flag in self.inputs.exchange.attributes_keys():
                     handler.write(f'{self.inputs.exchange[flag]}\n')
-            user_define_dict_name_list.append(
-                'exchange')  #for activation of  'exchange' flag
+            user_define_dict_name_list.append('exchange')  #for activation of  'exchange' flag
 
         if 'inpsd' not in input_filenames:  # nothing in inpsd dict
             # note that we take the inpsd.dat first, that means if we have both
             # inpsd dict and inpsd.dat file we only use inpsd.dat file
             # Create input file: inpsd.dat
             with folder.open(
-                    self.options.input_filename, 'a+'
+                self.options.input_filename, 'a+'
             ) as handler:  #here input_filename is an input option not a list
                 for flag in self.inputs.inpsd_dict.attributes_keys():
-                    handler.write(f'{flag}' +
-                                  f'    {self.inputs.inpsd_dict[flag]}\n')
+                    handler.write(f'{flag}' + f'    {self.inputs.inpsd_dict[flag]}\n')
                 for name in input_filenames:
                     handler.write(f'{name}    ./{name}\n')
                 for name_ud in user_define_dict_name_list:
@@ -239,11 +240,9 @@ class UppASD(CalcJob):
                 #I believe all our user are kind people, they will not do evil
                 # things with eval() function :-)
                 # ToDo: replace eval() here to make sure the satisfy
-                local_list.append((eval(name).uuid, eval(name).filename,
-                                   eval(name).filename))
+                local_list.append((eval(name).uuid, eval(name).filename, eval(name).filename))
             else:
-                local_list.append(
-                    (eval(name).uuid, eval(name).filename, 'inpsd.dat'))
+                local_list.append((eval(name).uuid, eval(name).filename, 'inpsd.dat'))
         calcinfo.local_copy_list = local_list
 
         input_retrieve_list_name = self.inputs.retrieve_list_name

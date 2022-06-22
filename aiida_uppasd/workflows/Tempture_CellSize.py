@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-_summary_
+This demo we only need temperature list and N(cell size)
+@author Qichen Xu
+Workchain demo for plot M(T) with different cell setting
 """
 import os
 import numpy as np
@@ -10,10 +12,6 @@ from aiida.engine import ExitCode, WorkChain
 from aiida_uppasd.workflows.temperature_restart import UppASDTemperatureRestartWorkflow
 
 load_profile()
-"""
-@author Qichen Xu
-Workchain demo for plot M(T) with different cell setting
-"""
 
 
 def cal_node_query(workchain_pk):
@@ -33,6 +31,7 @@ class MCVariableCellWorkchain(WorkChain):
     """This demo we only need temperature list and N(cell size)
 
     list as extra controllable input"""
+
     @classmethod
     def define(cls, spec):
         """This demo we only need temperature list and N(cell size)
@@ -64,9 +63,9 @@ class MCVariableCellWorkchain(WorkChain):
 
     def submit_workchains(self):
         """submit UppASDTemperatureRestartWorkflow with input"""
-        N_list = self.inputs.N_list
+        ncell_list = self.inputs.N_list
         temp_list = self.inputs.temp_list
-        for i in N_list:
+        for cell_size in ncell_list:
             input_uppasd = {
                 'inpsd_temp':
                 orm.Dict(
@@ -74,13 +73,15 @@ class MCVariableCellWorkchain(WorkChain):
                         'simid':
                         orm.Str('bccFe100'),
                         'ncell':
-                        orm.Str(f'{i} {i} {i}'),
+                        orm.Str(f'{cell_size} {cell_size} {cell_size}'),
                         'BC':
                         orm.Str('P         P         P '),
                         'cell':
-                        orm.Str("""1.00000 0.00000 0.00000
+                        orm.Str(
+                            """1.00000 0.00000 0.00000
                         0.00000 1.00000 0.00000
-                        0.00000 0.00000 1.00000"""),
+                        0.00000 0.00000 1.00000"""
+                        ),
                         'sym':
                         orm.Int(1),
                         'maptype':
@@ -89,7 +90,8 @@ class MCVariableCellWorkchain(WorkChain):
                         orm.Int(3),
                         'alat':
                         orm.Float(2.87e-10),
-                    }),
+                    }
+                ),
                 'num_machines':
                 orm.Int(1),
                 'num_mpiprocs_per_machine':
@@ -98,8 +100,7 @@ class MCVariableCellWorkchain(WorkChain):
                 orm.Int(1800),
                 #'code' :Code.get_from_string('uppasd_dev@uppasd_local'),
                 'code':
-                orm.Code.get_from_string(
-                    'uppasd_nsc_2021_test@nsc_uppasd_2021'),
+                orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021'),
                 'input_filename':
                 orm.Str('inpsd.dat'),
                 'parser_name':
@@ -120,9 +121,8 @@ class MCVariableCellWorkchain(WorkChain):
                 temp_list,
             }
 
-            future = self.submit(UppASDTemperatureRestartWorkflow,
-                                 **input_uppasd)
-            key = f'workchain_with_N_{i}'
+            future = self.submit(UppASDTemperatureRestartWorkflow, **input_uppasd)
+            key = f'workchain_with_N_{cell_size}'
             self.to_context(**{key: future})
 
     def plot_result(self):
@@ -131,47 +131,46 @@ class MCVariableCellWorkchain(WorkChain):
         Note that we use normalized axis like T/Tc in all figures
         """
         plot_path = self.inputs.plot_dir.value
-        N_list = self.inputs.N_list
+        ncell_list = self.inputs.N_list
         _ = self.inputs.temp_list
-        T_C = 1043  # BCC Fe Curie temperature
+        curie_temperature = 1043  # BCC Fe Curie temperature
 
         plt.figure()
-        _, ax = plt.subplots()
-        for i in N_list:
+        _, axes = plt.subplots()
+        for i in ncell_list:
             key = f'workchain_with_N_{i}'
             sub_workchain_node = self.ctx[key]
             sub_workchain_pk = sub_workchain_node.pk
             self.report(f'sub_workchain {sub_workchain_pk}')
             data = cal_node_query(sub_workchain_pk)[0][0].get_dict()
-            ax.plot(
-                np.array(data['temperature']) / T_C,
-                np.array(data['magnetization']) /
-                np.array(data['magnetization'][0]),
+            axes.plot(
+                np.array(data['temperature']) / curie_temperature,
+                np.array(data['magnetization']) / np.array(data['magnetization'][0]),
                 label=f'N={i}',
             )
-        ax.legend()
-        ax.set_xlabel('T/Tc')
-        ax.set_ylabel('M/Mc')
+        axes.legend()
+        axes.set_xlabel('T/Tc')
+        axes.set_ylabel('M/Mc')
         # plt.title('Temperature-magnetization')
         plt.savefig(f'{plot_path}/temperature-magnetization.png')
         plt.close()
 
         plt.figure()
-        _, ax = plt.subplots()
-        for i in N_list:
+        _, axes = plt.subplots()
+        for i in ncell_list:
             key = f'workchain_with_N_{i}'
             sub_workchain_node = self.ctx[key]
             sub_workchain_pk = sub_workchain_node.pk
             self.report(f'sub_workchain {sub_workchain_pk}')
             data = cal_node_query(sub_workchain_pk)[0][0].get_dict()
-            ax.plot(
-                np.array(data['temperature']) / T_C,
+            axes.plot(
+                np.array(data['temperature']) / curie_temperature,
                 data['energy'],
                 label=f'N={i}',
             )
-        ax.legend()
-        ax.set_xlabel('T/Tc')
-        ax.set_ylabel('Energy(mRy)')
+        axes.legend()
+        axes.set_xlabel('T/Tc')
+        axes.set_ylabel('Energy(mRy)')
         # plt.title('temperature-energy')
         plt.savefig(f'{plot_path}/temperature-energy.png')
         plt.close()

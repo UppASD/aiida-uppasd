@@ -19,8 +19,7 @@ class UppASDTaskWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseWorkChain)
-        spec.expose_outputs(ASDBaseWorkChain,
-                            include=['totenergy', 'cumulants'])
+        spec.expose_outputs(ASDBaseWorkChain, include=['totenergy', 'cumulants'])
 
         spec.input(
             'inpsd_temp',
@@ -37,21 +36,14 @@ class UppASDTaskWorkflow(WorkChain):
 
     def load_defaults(self):
         """
-        _summary_
-
-        _extended_summary_
+        Load the default values for the workchain.
         """
         ### Preparing to include defaults from .json files
         self.inputs.inpsd_dict = self.inputs.inpsd_temp.get_dict()
 
     def run_base_workchain(self):
         """
-        _summary_
-
-        _extended_summary_
-
-        :return: _description_
-        :rtype: _type_
+        Perform a base UppASD calculation
         """
         inputs = AttributeDict()
         inputs.code = self.inputs.code
@@ -66,10 +58,7 @@ class UppASDTaskWorkflow(WorkChain):
 
     def results(self):
         """
-        _summary_
-
-        _extended_summary_
+        Expose the results of the workchain to the parent.
         """
         #for test we output total energy array in the workchain result
-        self.out_many(
-            self.exposed_outputs(self.ctx.asd_base_result, ASDBaseWorkChain))
+        self.out_many(self.exposed_outputs(self.ctx.asd_base_result, ASDBaseWorkChain))
