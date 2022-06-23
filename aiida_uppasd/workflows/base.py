@@ -4,7 +4,7 @@ from aiida import orm
 from aiida.engine import ToContext, BaseRestartWorkChain
 from aiida.plugins import CalculationFactory
 
-ASDCalculation = CalculationFactory('UppASD_core_calculations')
+ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')
 
 
 class ASDBaseWorkChain(BaseRestartWorkChain):
@@ -38,7 +38,7 @@ class ASDBaseWorkChain(BaseRestartWorkChain):
             valid_type=orm.Str,
             help='parser_name for aiida-uppasd',
             required=False,
-            default=lambda: orm.Str('UppASD_core_parsers'),
+            default=lambda: orm.Str('uppasd.uppasd_parser'),
         )
         spec.input(
             'label',

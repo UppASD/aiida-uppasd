@@ -104,7 +104,7 @@ class MCVariableCellWorkchain(WorkChain):
                 'input_filename':
                 orm.Str('inpsd.dat'),
                 'parser_name':
-                orm.Str('UppASD_core_parsers'),
+                orm.Str('uppasd.uppasd_parser'),
                 'label':
                 orm.Str('uppasd_base_workflow_demo'),
                 'description':

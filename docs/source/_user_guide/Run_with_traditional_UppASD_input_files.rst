@@ -43,7 +43,7 @@ then choose the code and set calculation method from UppASD_AiiDA inferface:
     :linenos:
 
     code = Code.get_from_string('your code name')
-    aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+    aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
 
 After that we needed to give the path to pre-prepared folder that includes all files that we need and set the except file rule. 
 Note that you should named UppASD input file with "inpsd" instead of "inpsd.dat" here.
@@ -74,7 +74,7 @@ Finally set up calculation with your own option:
     builder.retrieve_list_name = r_l
     builder.metadata.options.resources = {'num_machines': }
     builder.metadata.options.max_wallclock_seconds = 
-    builder.metadata.options.parser_name = 'UppASD_core_parsers'
+    builder.metadata.options.parser_name = 'uppasd.uppasd_parser'
     builder.metadata.label = ''
     builder.metadata.description = ''
     job_node = submit(builder)

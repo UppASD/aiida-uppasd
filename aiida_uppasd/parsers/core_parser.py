@@ -12,7 +12,7 @@ from aiida.plugins import CalculationFactory
 from aiida.common.exceptions import NotExistent
 from aiida_uppasd.parsers.raw_parsers import parse_inpsd, parse_posfile, parser_array_file
 
-ASDCalculation = CalculationFactory('UppASD_core_calculations')
+ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')
 
 # from UppASD repo postQ.py @Anders
 

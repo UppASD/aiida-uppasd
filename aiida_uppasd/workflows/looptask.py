@@ -8,7 +8,7 @@ from aiida.engine import ToContext, WorkChain, calcfunction
 from aiida.plugins import CalculationFactory
 from aiida_uppasd.workflows.base import ASDBaseWorkChain
 
-ASDCalculation = CalculationFactory('UppASD_core_calculations')
+ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')
 
 
 @calcfunction

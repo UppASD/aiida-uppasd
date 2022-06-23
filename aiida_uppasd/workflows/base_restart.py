@@ -9,7 +9,7 @@ from aiida.engine import (
 )
 from aiida.plugins import CalculationFactory
 
-ASDCalculation = CalculationFactory('UppASD_core_calculations')
+ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')
 
 
 class ASDBaseRestartWorkChain(BaseRestartWorkChain):
@@ -180,7 +180,7 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
 
         # some optional values
         if 'exchange' in self.inputs:
-            self.ctx.inputs.exchange = self.inputs.exchange
+            self.ctx.inputs['exchange'] = self.inputs.exchange
 
         if 'AMSplots' in self.inputs:
             self.ctx.inputs['AMSplot'] = self.inputs.AMSplot
@@ -193,7 +193,7 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
             ASDCalculation.exit_codes.WallTimeError,
         ],
     )
-    def handle_out_of_walltime(self):
+    def handle_out_of_walltime(self, node):  # pylint: disable=unused-argument
         """
         Handle `WallTimeError` exit code.
 

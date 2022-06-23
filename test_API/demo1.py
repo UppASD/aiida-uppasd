@@ -92,7 +92,7 @@ print(f'your calculation will run on {code_name}@{computer_name}')
 #choose your code here :
 code = orm.Code.get_from_string(f'{code_name}@{computer_name}')
 #choose calculation method from UppASD_AiiDA interface
-aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
 
 #prepare all files like what you do for traditional UppASD calculation in the folder:
 #Note that you should named UppASD input file with "inpsd" instead of "inpsd.dat" here.
@@ -112,7 +112,7 @@ builder.metadata.options.resources = {
     'num_mpiprocs_per_machine': 2,
 }
 builder.metadata.options.max_wallclock_seconds = 600
-builder.metadata.options.parser_name = 'UppASD_core_parsers'
+builder.metadata.options.parser_name = 'uppasd.uppasd_parser'
 builder.metadata.label = 'Demo5'
 builder.metadata.description = 'Test demo5 for UppASD-AiiDA'
 job_node = submit(builder)

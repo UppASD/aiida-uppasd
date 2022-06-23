@@ -13,7 +13,7 @@ from aiida.engine import submit
 load_profile()
 code = orm.Code.get_from_string('uppasd_dev@uppasd_local')
 #code = Code.get_from_string('uppasd_nsc_2021@nsc_uppasd_2021')
-aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
 builder = aiida_uppasd.get_builder()
 
 #pre-prepared files folder:
@@ -70,7 +70,7 @@ builder.retrieve_list_name = r_l
 builder.metadata.options.resources = {'num_machines': 1, 'num_mpiprocs_per_machine': 16}
 builder.metadata.options.max_wallclock_seconds = 60 * 30
 builder.metadata.options.input_filename = 'inpsd.dat'
-builder.metadata.options.parser_name = 'UppASD_core_parsers'
+builder.metadata.options.parser_name = 'uppasd.uppasd_parser'
 builder.metadata.label = 'Demo3'
 builder.metadata.description = 'Test demo3 for UppASD-AiiDA'
 job_node = submit(builder)

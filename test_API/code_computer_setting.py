@@ -79,7 +79,7 @@ def get_code(label, executable_path=None, computer=None):
         return codes[0]
     path = get_path_to_executable(executable_path)
     code = Code(
-        input_plugin_name='UppASD_core_calculations',
+        input_plugin_name='uppasd.uppasd_calculation',
         remote_computer_exec=[computer, path],
     )
     code.label = label

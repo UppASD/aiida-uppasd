@@ -25,7 +25,7 @@ def calculate_single_trajectory(temp: orm.Float, hfield: orm.Str):
     """
     code = orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021')
     #code = Code.get_from_string('uppasd_nsc_2021@nsc_uppasd_2021')
-    aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+    aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
     builder = aiida_uppasd.get_builder()
     #pre-prepared files folder:
     prepared_file_folder = orm.Str(os.path.join(os.getcwd(), 'demo7_input'))
@@ -101,7 +101,7 @@ def calculate_single_trajectory(temp: orm.Float, hfield: orm.Str):
     }
     builder.metadata.options.max_wallclock_seconds = 60 * 55
     builder.metadata.options.input_filename = 'inpsd.dat'
-    builder.metadata.options.parser_name = 'UppASD_core_parsers'
+    builder.metadata.options.parser_name = 'uppasd.uppasd_parser'
     builder.metadata.label = 'Demo7'
     builder.metadata.description = 'Test demo7 for UppASD-AiiDA'
     job_node = submit(builder)

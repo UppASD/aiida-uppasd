@@ -8,7 +8,7 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 
 
-class UppASD(CalcJob):
+class UppASDCalculation(CalcJob):
     """
     | AiiDA calculation plugin wrapping the SD executable (from UppASD packages).
 
@@ -37,7 +37,7 @@ class UppASD(CalcJob):
         | be easier.
         """
 
-        super(UppASD, cls).define(spec)
+        super(UppASDCalculation, cls).define(spec)
         # input file sections :
         spec.input(
             'prepared_file_folder',

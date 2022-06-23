@@ -24,7 +24,7 @@ Then you need to write your functions for single calculation:
 
     def submit_single_calc(Jij1,Jij2,atom_n,ipm):
         code = Code.get_from_string('your code name')
-        aiida_uppasd = CalculationFactory('UppASD_core_calculations')
+        aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
         builder = aiida_uppasd.get_builder()
 
 
@@ -90,7 +90,7 @@ Then you need to write your functions for single calculation:
         builder.metadata.options.resources = {'num_machines': your cluster nodes,'num_mpiprocs_per_machine': your cores}
         builder.metadata.options.max_wallclock_seconds = 60*55
         builder.metadata.options.input_filename = 'inpsd.dat'
-        builder.metadata.options.parser_name = 'UppASD_core_parsers'
+        builder.metadata.options.parser_name = 'uppasd.uppasd_parser'
         builder.metadata.label = 'HeisChain'
         builder.metadata.description = 'HeisChain data'
         job_node = submit(builder)

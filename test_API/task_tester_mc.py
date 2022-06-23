@@ -41,11 +41,11 @@ input_uppasd = {
     'max_wallclock_seconds':
     orm.Int(2000),
     'code':
-    orm.Code.get_from_string('uppasd_dev@uppasd_local'),
+    orm.Code.get_from_string('uppasd@localhost'),
     'input_filename':
     orm.Str('inpsd.dat'),
     'parser_name':
-    orm.Str('UppASD_core_parsers'),
+    orm.Str('uppasd.uppasd_parser'),
     'label':
     orm.Str('uppasd_base_workflow_demo'),
     'description':
