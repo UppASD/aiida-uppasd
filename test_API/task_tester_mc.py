@@ -3,7 +3,7 @@
 import os
 from aiida import orm, load_profile
 from aiida.engine import submit
-from aiida_uppasd.workflows.ferromagnet import UppASDFastFerroWorkflow
+from aiida_uppasd.workflows.simpletask import UppASDSimpleTaskWorkflow
 load_profile()
 
 input_uppasd = {
@@ -22,14 +22,16 @@ input_uppasd = {
                 0.00000 1.00000 0.00000
                 0.00000 0.00000 1.00000'''
             ),
-            'sym':
-            orm.Int(1),
             'maptype':
             orm.Int(1),
             'Initmag':
             orm.Int(3),
             'alat':
-            orm.Float(2.87e-10)
+            orm.Float(2.87e-10),
+            'temp':
+            orm.Float(100.0),
+            'ip_temp':
+            orm.Float(100.0)
         }
     ),
     'num_machines':
@@ -39,7 +41,7 @@ input_uppasd = {
     'max_wallclock_seconds':
     orm.Int(2000),
     'code':
-    orm.Code.get_from_string('uppasd_dev@uppasd_local'),
+    orm.Code.get_from_string('uppasd@localhost'),
     'input_filename':
     orm.Str('inpsd.dat'),
     'parser_name':
@@ -54,9 +56,9 @@ input_uppasd = {
     orm.List(list=[]),
     'retrieve_list_name':
     orm.List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
+    'tasks':
+    orm.List(list=['mc', 'thermodynamics'])
 }
 
-builder = UppASDFastFerroWorkflow.get_builder()
+builder = UppASDSimpleTaskWorkflow.get_builder()
 job_node = submit(builder, **input_uppasd)
-
-print(f'FerroMagnetWorkflow submitted, PK: {job_node.pk}')

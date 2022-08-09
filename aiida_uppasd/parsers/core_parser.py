@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 '''
 Parser for UppASD
 '''
+import json
+import numpy as np
+import seekpath as spth
+from aiida import orm
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-from aiida.orm import ArrayData, Dict, BandsData,Bool
-import numpy as np
-import pandas as pd
-import json
 from aiida.plugins import CalculationFactory
-import seekpath as spth
+from aiida.common.exceptions import NotExistent
+from aiida_uppasd.parsers.raw_parsers import parse_inpsd, parse_posfile, parser_array_file
 
 
 ASDCalculation = CalculationFactory('UppASD_core_calculations')
@@ -20,16 +22,12 @@ class SpinDynamic_core_parser(Parser):
     basic version(np.array) You can change it as you want and parser  
     it to fit your need. 
 
-    :param Parser father class aiida.parsers.parser 
-    :type Parser aiida.parsers.parser module 
+    :param Parser father class aiida.parsers.parser
+    :type Parser aiida.parsers.parser module
     :return: parsed numpy array
-    """    
+    """
 
-
-
-
-    
-    def total_energy_file_parser(self,file_name_of_total_energy):
+    def parse(self, **kwargs):  # pylint: disable=too-many-locals, too-many-statements, too-many-branches
         """
         :param file_name_of_total_energy 
         :type file_name_of_total_energy opened file
@@ -236,20 +234,19 @@ class SpinDynamic_core_parser(Parser):
         retrived_file_name_list = output_folder.list_object_names()
 
         #parser _scheduler-stdout.txt to detect if Simulation is finished or not
-        
-        with output_folder.open('_scheduler-stdout.txt', 'rb') as f:
-                    log = str(f.read())
-                    if 'Simulation finished' in log:
-                        pass
-                    else:
-                        return ASDCalculation.exit_codes.WallTimeError
-                
 
-        for name in retrived_file_name_list:
-            print('File name in output list: {}'.format(name))
-            self.logger.info('File name in output list: {}'.format(name))
-            if 'coord' in name:
-                coord_filename = name
+        with out_folder.open('_scheduler-stdout.txt', 'rb') as handler:
+            log = str(handler.read())
+            if 'Simulation finished' in log:
+                pass
+            else:
+                return ASDCalculation.exit_codes.WallTimeError
+
+        for filename in list_of_files:
+            print(f'File name in output list: {filename}')
+            self.logger.info(f'File name in output list: {filename}')
+
+            if 'coord' in filename:
                 # parse coord.xx.out
                 self.logger.info("Parsing '{}'".format(coord_filename))
                 with output_folder.open(coord_filename, 'rb') as f:
@@ -304,27 +301,6 @@ class SpinDynamic_core_parser(Parser):
                     output_qm_minima.set_array('Energy_mRy', Energy_mRy)
                 self.out('qm_minima', output_qm_minima)
 
-            if 'totenergy' in name:
-                totenergy_filename = name
-                # parse totenergy.xx.out
-                self.logger.info("Parsing '{}'".format(totenergy_filename))
-                with output_folder.open(totenergy_filename, 'rb') as f:
-                    Iter_num_totenergy, Tot, Exc, Ani, DM, PD, BiqDM, BQ, Dip, Zeeman, LSF, Chir = self.total_energy_file_parser(
-                        f)
-                    output_totenergy = ArrayData()
-                    output_totenergy.set_array(
-                        'Iter_num_totenergy', Iter_num_totenergy)
-                    output_totenergy.set_array('Tot', Tot)
-                    output_totenergy.set_array('Exc', Exc)
-                    output_totenergy.set_array('Ani', Ani)
-                    output_totenergy.set_array('DM', DM)
-                    output_totenergy.set_array('PD', PD)
-                    output_totenergy.set_array('BiqDM', BiqDM)
-                    output_totenergy.set_array('BQ', BQ)
-                    output_totenergy.set_array('Dip', Dip)
-                    output_totenergy.set_array('Zeeman', Zeeman)
-                    output_totenergy.set_array('LSF', LSF)
-                    output_totenergy.set_array('Chir', Chir)
                 # it is not good to hold a particular output datatype
                 self.out('totenergy', output_totenergy)
 
@@ -447,40 +423,27 @@ class SpinDynamic_core_parser(Parser):
                             simid=line_data[1]
                             #print('simid: ',simid)
 
-                        # Find the cell data
-                        if(line_data[0]=='cell'):
-                            cell=[]
-                            lattice=np.empty([0,3])
-                            line_data=lines[idx+0].split()
-                            cell=np.append(cell,np.asarray(line_data[1:4]))
-                            lattice=np.vstack((lattice,np.asarray(line_data[1:4])))
-                            line_data=lines[idx+1].split()
-                            cell=np.append(cell,np.asarray(line_data[0:3]))
-                            lattice=np.vstack((lattice,np.asarray(line_data[0:3])))
-                            line_data=lines[idx+2].split()
-                            cell=np.append(cell,np.asarray(line_data[0:3]))
-                            lattice=np.vstack((lattice,np.asarray(line_data[0:3])))
-                            #print('cell: ',cell)
-                            #print('lattice: ',lattice)
+                self.out('struct_out', output)
 
-                        # Find the size of the simulated cell
-                        if(line_data[0]=='ncell'):
-                            ncell_x=int(line_data[1])
-                            ncell_y=int(line_data[1])
-                            ncell_z=int(line_data[1])
-                            mesh=[ncell_x,ncell_y,ncell_z]
+            if 'cumulant' in filename and not 'out' in filename:
+                self.logger.info(f"Parsing '{filename}'")
+                with out_folder.open(filename, 'rb') as handler:
+                    cumulants = json.load(handler)
+                self.out('cumulants', orm.Dict(dict=cumulants))
 
-                        if(line_data[0]=='timestep'):
-                            timestep=line_data[1]
-                            #print('timestep: ',timestep)
+            if 'ams' in filename[0:4] and 'qpoints.out' in list_of_files:
+                self.logger.info(f"Parsing '{filename}'")
+                # Read qpoints to create BandsData object.
+                output = orm.BandsData()
+                with out_folder.open('qpoints.out', 'rb') as handler:
+                    data = parser_array_file(handler=handler)
+                output.set_kpoints(data[:, 1:4])
 
-                        if(line_data[0]=='sc_nstep'):
-                            sc_nstep=line_data[1]
-                            #print('sc_nstep: ',sc_nstep)
+                with out_folder.open(filename, 'rb') as handler:
+                    data = parser_array_file(handler=handler)
 
-                        if(line_data[0]=='sc_step'):
-                            sc_step=line_data[1]
-                            #print('sc_step: ',sc_step)
+                output.set_bands(data[:, 1:-1], units='meV')
+                self.out('ams', output)
 
                         # Read the name of the position file
                         if(line_data[0].strip()=='posfile'):
@@ -513,20 +476,60 @@ class SpinDynamic_core_parser(Parser):
                         sqw_z=np.reshape(sqw[:,4],(nq,nw))
                         sqw_t=sqw_x**2+sqw_y**2
 
-            with output_folder.open('qfile', 'rb') as f:
-                    qpts=np.genfromtxt(f,skip_header=1,usecols=(0,1,2))
-            axlab=[]
-            axidx=[]
-            axidx_abs=[]
-            for idx,row in enumerate(qpts):
-                for k,v in kpath_obj['point_coords'].items():
-                    if (v==row).all():
-                        axlab.append(k[0])
-                        axidx.append(ams[idx,ams_dist_col])
-                        axidx_abs.append(ams[idx,0])
-            AMS_plot_var = Dict(dict = {'timestep':timestep,'sc_step':sc_step,'sqw_x':sqw_x,'sqw_y':sqw_y,'ams':ams,'axidx_abs':axidx_abs,'ams_dist_col':ams_dist_col,'axlab':axlab})
-            self.out('AMS_plot_var',AMS_plot_var)
+        ams_plot_settings = False
+        if 'AMSplot' in self.node.inputs:
+            ams_plot_settings = self.node.inputs.AMSplot.value
 
-                
+        if ams_plot_settings:
+            with out_folder.open('inpsd.dat', 'r') as handler:
+                inpsd_data = parse_inpsd(handler=handler)
+            with out_folder.open('posfile', 'r') as handler:
+                positions, numbers = parse_posfile(handler=handler)
+            cell = (inpsd_data['lattice'], positions, numbers)
+            kpath_obj = spth.get_path(cell)
+            for filename in list_of_files:
+                if 'ams' in filename[0:4]:
+                    with out_folder.open(filename, 'rb') as handler:
+                        ams = parser_array_file(handler=handler)
+                        ams_dist_col = ams.shape[1] - 1
+                if 'sqw' in filename[0:4]:
+                    with out_folder.open(filename, 'rb') as handler:
+                        sqw = parser_array_file(
+                            handler=handler,
+                            usecols=[0, 4, 5, 6, 7, 8],
+                        )
+                        number_qpoints = int(sqw[-1, 0])
+                        number_frequencies = int(sqw[-1, 1])
+                        sqw_x = np.reshape(sqw[:, 2], (number_qpoints, number_frequencies))
+                        sqw_y = np.reshape(sqw[:, 3], (number_qpoints, number_frequencies))
+
+            with out_folder.open('qfile', 'rb') as handler:
+                qpoints = parser_array_file(
+                    handler=handler,
+                    skiprows=1,
+                    usecols=[0, 1, 2],
+                )
+            axlab = []
+            axidx = []
+            axidx_abs = []
+            for idx, row in enumerate(qpoints):
+                for key, value in kpath_obj['point_coords'].items():
+                    if (value == row).all():
+                        axlab.append(key[0])
+                        axidx.append(ams[idx, ams_dist_col])
+                        axidx_abs.append(ams[idx, 0])
+            ams_plot_data = orm.Dict(
+                dict={
+                    'timestep': inpsd_data['timestep'],
+                    'sc_step': inpsd_data['sc_step'],
+                    'sqw_x': sqw_x.tolist(),
+                    'sqw_y': sqw_y.tolist(),
+                    'ams': ams.tolist(),
+                    'axidx_abs': axidx_abs,
+                    'ams_dist_col': ams_dist_col,
+                    'axlab': axlab
+                }
+            )
+            self.out('AMS_plot_var', ams_plot_data)
 
         return ExitCode(0)

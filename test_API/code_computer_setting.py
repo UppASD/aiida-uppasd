@@ -1,11 +1,9 @@
+# -*- coding: utf-8 -*-
 '''
-Taken from AiiDA-diff repo 
+Taken from AiiDA-diff repo
 https://github.com/aiidateam/aiida-diff/blob/master/aiida_diff/helpers.py
 and modified by Qichen
 '''
-
-
-
 
 import tempfile
 import shutil
@@ -13,7 +11,6 @@ from aiida.orm import Computer, Code
 from aiida.common.exceptions import NotExistent
 
 LOCALHOST_NAME = 'localhost-test'
-
 
 
 def get_path_to_executable(executable):
@@ -25,8 +22,7 @@ def get_path_to_executable(executable):
     """
     path = shutil.which(executable)
     if path is None:
-        raise ValueError(
-            "'{}' executable not found in PATH.".format(executable))
+        raise ValueError(f"'{executable}' executable not found in PATH.")
     return path
 
 
@@ -53,15 +49,16 @@ def get_computer(name=LOCALHOST_NAME, workdir=None):
             hostname=name,
             workdir=workdir,
             transport_type='local',
-            scheduler_type='direct')
+            scheduler_type='direct'
+        )
         computer.store()
         computer.set_minimum_job_poll_interval(0.)
         computer.configure()
-        print("New computer '{}' is created".format(name))
+        print(f"New computer '{name}' is created")
     return computer
 
 
-def get_code(label,executable_path=None, computer=None):
+def get_code(label, executable_path=None, computer=None):
     """Get local code.
     Sets up code for given entry point on given computer.
     :param entry_point: Entry point of calculation plugin
@@ -82,11 +79,9 @@ def get_code(label,executable_path=None, computer=None):
         return codes[0]
     path = get_path_to_executable(executable_path)
     code = Code(
-        input_plugin_name='UppASD_core_calculations',
+        input_plugin_name='uppasd.uppasd_calculation',
         remote_computer_exec=[computer, path],
     )
     code.label = label
-    print("New code '{}' is created".format(label))
+    print(f"New code '{label}' is created")
     return code.store()
-
-

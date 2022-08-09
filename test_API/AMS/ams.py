@@ -1,49 +1,25 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
-from aiida import orm
-import aiida
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import (
-    run,
-    submit,
-    ToContext,
-    if_,
-    while_,
-    BaseRestartWorkChain,
-    process_handler,
-    ProcessHandlerReport,
-    ExitCode,
-)
-from aiida.plugins import CalculationFactory, GroupFactory
-from aiida.orm import (
-    Code,
-    SinglefileData,
-    Int,
-    Float,
-    Str,
-    Bool,
-    List,
-    Dict,
-    ArrayData,
-    XyData,
-    SinglefileData,
-    FolderData,
-    RemoteData,
-)
-from aiida_uppasd.workflows.magnon_spectra import  UppASDMagnonSpectraRestartWorkflow
 import os
+from aiida import orm, load_profile
+from aiida.engine import submit
+from aiida_uppasd.workflows.magnon_spectra import UppASDMagnonSpectraRestartWorkflow
 
-aiida.load_profile()
+load_profile()
 current_path = os.getcwd()
 
 input_uppasd = {
-    "inpsd_ams": orm.Dict(
+    'inpsd_ams':
+    orm.Dict(
         dict={
-            "simid": Str("bccFe100"),
-            "ncell": Str("20        20        20"),
-            "BC": Str("P         P         P "),
-            "cell": Str(
+            'simid':
+            orm.Str('bccFe100'),
+            'ncell':
+            orm.Str('20        20        20'),
+            'BC':
+            orm.Str('P         P         P '),
+            'cell':
+            orm.Str(
                 """1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
                 0.00000 0.00000 1.00000"""
@@ -76,26 +52,38 @@ input_uppasd = {
             'magdos_sigma': Int(30),
         }
     ),
-    "num_machines": orm.Int(1),
-    "num_mpiprocs_per_machine": orm.Int(16),
-    "max_wallclock_seconds": orm.Int(2000),
-    "code": Code.get_from_string("uppasd_dev@uppasd_local"),
-    "input_filename": orm.Str("inpsd.dat"),
-    "parser_name": orm.Str("UppASD_core_parsers"),
-    "label": orm.Str("uppasd_base_workflow_demo"),
-    "description": orm.Str("Test base workflow"),
-    "prepared_file_folder": Str(os.path.join(os.getcwd(), "AMS_input")),
-    "except_filenames": List(list=[]),
-    "retrieve_list_name": List(list=[("*", ".", 0), ("*.json", ".", 0)]),
-    "J_model": Int(-1),
-    "plot_dir":Str(current_path),
-    'AMSplot':Bool('True')
+    'num_machines':
+    orm.Int(1),
+    'num_mpiprocs_per_machine':
+    orm.Int(16),
+    'max_wallclock_seconds':
+    orm.Int(2000),
+    'code':
+    orm.Code.get_from_string('uppasd_dev@uppasd_local'),
+    'input_filename':
+    orm.Str('inpsd.dat'),
+    'parser_name':
+    orm.Str('uppasd.uppasd_parser'),
+    'label':
+    orm.Str('uppasd_base_workflow_demo'),
+    'description':
+    orm.Str('Test base workflow'),
+    'prepared_file_folder':
+    orm.Str(os.path.join(os.getcwd(), 'AMS_input')),
+    'except_filenames':
+    orm.List(list=[]),
+    'retrieve_list_name':
+    orm.List(list=[('*', '.', 0), ('*.json', '.', 0)]),
+    'J_model':
+    orm.Int(-1),
+    'plot_dir':
+    orm.Str(current_path),
+    'AMSplot':
+    orm.Bool('True')
 }
-
-#'tasks':List(list=[ 'stiffness','lswt'
 
 job_node = submit(UppASDMagnonSpectraRestartWorkflow, **input_uppasd)
 
-print("UppASDAMSPlotWorkflow submitted, PK: {}".format(job_node.pk))
-with open("UppASDAMSPlotWorkflow_jobPK.csv", "w") as f:
+print(f'UppASDAMSPlotWorkflow submitted, PK: {job_node.pk}')
+with open('UppASDAMSPlotWorkflow_jobPK.csv', 'w') as f:
     f.write(str(job_node.pk))

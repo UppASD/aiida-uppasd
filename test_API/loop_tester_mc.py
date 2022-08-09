@@ -3,7 +3,7 @@
 import os
 from aiida import orm, load_profile
 from aiida.engine import submit
-from aiida_uppasd.workflows.ferromagnet import UppASDFastFerroWorkflow
+from aiida_uppasd.workflows.looptask import UppASDLoopTaskWorkflow
 load_profile()
 
 input_uppasd = {
@@ -54,9 +54,30 @@ input_uppasd = {
     orm.List(list=[]),
     'retrieve_list_name':
     orm.List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
+    'tasks':
+    orm.List(list=['mc', 'thermodynamics']),
+    'loop_key':
+    orm.Str('temp'),
+    'loop_values':
+    orm.List(list=[
+        0.001,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900,
+        1000,
+        1100,
+        1200,
+        1300,
+        1400,
+        1500,
+    ])
 }
 
-builder = UppASDFastFerroWorkflow.get_builder()
+builder = UppASDLoopTaskWorkflow.get_builder()
 job_node = submit(builder, **input_uppasd)
-
-print(f'FerroMagnetWorkflow submitted, PK: {job_node.pk}')

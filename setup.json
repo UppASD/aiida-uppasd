@@ -1,5 +1,5 @@
 {
-    "name": "UppASD_AiiDA_interface",
+    "name": "aiida-uppasd",
     "author": "Qichen Xu, Anders Bergman, Anna Delin, Jonathan Chico",
     "author_email": "qichenx@kth.se",
     "description": "Interface for UppASD and AiiDA",
@@ -15,10 +15,10 @@
     "version": "0.1.0",
     "entry_points": {
         "aiida.calculations": [
-            "UppASD_core_calculations = aiida_uppasd.calculations.core_calcs:UppASD"
+            "uppasd.uppasd_calculation = aiida_uppasd.calculations.core_calcs:UppASDCalculation"
         ],
         "aiida.parsers": [
-            "UppASD_core_parsers = aiida_uppasd.parsers.core_parser:SpinDynamic_core_parser"
+            "uppasd.uppasd_parser = aiida_uppasd.parsers.core_parser:UppASDBaseParser"
         ],
 
         "aiida.workflows": [
@@ -40,21 +40,15 @@
         "numpy",
         "pandas",
         "sphinxemoji",
-        "sphinxcontrib-youtube"
+        "sphinxcontrib-youtube",
+        "plotext"
     ],
     "extras_require": {
         "testing": [
-            "pgtest~=1.3.1",
-            "wheel~=0.31",
-            "coverage",
-            "pytest~=3.6,<5.0.0",
-            "pytest-cov"
+            "aiida-core[tests]>=1.1.0,<2.0.0"
         ],
         "pre-commit": [
-            "astroid==2.2.5",
-            "pre-commit==1.20.0",
-            "prospector==1.1.7",
-            "pylint==2.3.1"
+            "aiida-core[pre-commit]>=1.1.0,<2.0.0"
         ],
         "docs": [
             "sphinx",

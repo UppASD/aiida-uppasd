@@ -3,7 +3,8 @@
 import os
 from aiida import orm, load_profile
 from aiida.engine import submit
-from aiida_uppasd.workflows.ferromagnet import UppASDFastFerroWorkflow
+from aiida_uppasd.workflows.temperature import UppASDTemperatureWorkflow
+
 load_profile()
 
 input_uppasd = {
@@ -18,9 +19,9 @@ input_uppasd = {
             orm.Str('P         P         P '),
             'cell':
             orm.Str(
-                '''1.00000 0.00000 0.00000
+                """1.00000 0.00000 0.00000
                 0.00000 1.00000 0.00000
-                0.00000 0.00000 1.00000'''
+                0.00000 0.00000 1.00000"""
             ),
             'sym':
             orm.Int(1),
@@ -29,7 +30,7 @@ input_uppasd = {
             'Initmag':
             orm.Int(3),
             'alat':
-            orm.Float(2.87e-10)
+            orm.Float(2.87e-10),
         }
     ),
     'num_machines':
@@ -54,9 +55,34 @@ input_uppasd = {
     orm.List(list=[]),
     'retrieve_list_name':
     orm.List(list=[('*.out', '.', 0), ('*.json', '.', 0)]),
+    'tasks':
+    orm.List(list=['mc', 'thermodynamics']),
+    'temperatures':
+    orm.List(list=[
+        0.001,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        850,
+        900,
+        950,
+        1000,
+        1100,
+        1200,
+        1300,
+        1400,
+        1500,
+    ]),
 }
 
-builder = UppASDFastFerroWorkflow.get_builder()
+builder = UppASDTemperatureWorkflow.get_builder()
 job_node = submit(builder, **input_uppasd)
 
-print(f'FerroMagnetWorkflow submitted, PK: {job_node.pk}')
+print(f'UppASDTemperatureWorkflow submitted, PK: {job_node.pk}')
+with open('UppASDTemperatureWorkflow_jobPK.csv', 'w') as f:
+    f.write(str(job_node.pk))
