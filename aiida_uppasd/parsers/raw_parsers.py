@@ -4,7 +4,6 @@ Set of helper functions for parsing the UppASD generated files.
 """
 import typing
 import numpy as np
-import pandas as pd
 
 
 def parser_array_file(
@@ -25,14 +24,12 @@ def parser_array_file(
     :rtype: np.ndarray
     """
 
-    result = pd.read_csv(
+    result = np.genfromtxt(
         handler,
-        sep=r'\s+',
-        header=None,
-        skiprows=skiprows,
+        skip_header=skiprows,
         usecols=usecols,
     )
-    return result.values
+    return result
 
 
 def parse_inpsd(handler) -> dict:

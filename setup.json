@@ -20,7 +20,9 @@
         "aiida.parsers": [
             "uppasd.uppasd_parser = aiida_uppasd.parsers.core_parser:UppASDBaseParser"
         ],
-
+        "aiida.cmdline.data": [
+            "uppasd.uppasd_cli = aiida_uppasd.tools.core_cli:uppasd_cli"
+        ],
         "aiida.workflows": [
             "uppasd.base_workflow = aiida_uppasd.workflows.base:ASDBaseWorkChain",
             "uppasd.task_workflow = aiida_uppasd.workflows.base_expose:ASDBaseWorkChain",
@@ -34,21 +36,20 @@
     "setup_requires": ["reentry"],
     "reentry_register": true,
     "install_requires": [
-        "aiida-core>=1.1.0,<2.0.0",
+        "aiida-core>=2.0.0",
         "six",
         "voluptuous",
         "numpy",
-        "pandas",
         "sphinxemoji",
         "sphinxcontrib-youtube",
         "plotext"
     ],
     "extras_require": {
         "testing": [
-            "aiida-core[tests]>=1.1.0,<2.0.0"
+            "aiida-core[tests]>=2.0.0"
         ],
         "pre-commit": [
-            "aiida-core[pre-commit]>=1.1.0,<2.0.0"
+            "aiida-core[pre-commit]>=2.0.0"
         ],
         "docs": [
             "sphinx",

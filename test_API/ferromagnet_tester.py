@@ -24,6 +24,8 @@ input_uppasd = {
             ),
             'sym':
             orm.Int(1),
+            'do_prnstruct':
+            orm.Int(1),
             'maptype':
             orm.Int(1),
             'Initmag':
@@ -58,5 +60,6 @@ input_uppasd = {
 
 builder = UppASDFastFerroWorkflow.get_builder()
 job_node = submit(builder, **input_uppasd)
+#job_node = run(builder, **input_uppasd)
 
 print(f'FerroMagnetWorkflow submitted, PK: {job_node.pk}')

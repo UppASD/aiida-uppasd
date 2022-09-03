@@ -3,6 +3,7 @@
 AiiDA calculation plugin wrapping the SD executable (from UppASD packages).
 """
 import os
+from ast import literal_eval
 from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
@@ -76,33 +77,91 @@ class UppASDCalculation(CalcJob):
         )
 
         # output sections:
-        spec.output('totenergy', valid_type=ArrayData, required=False,
-                    help='all data that stored in totenergy.out')
-        spec.output('coord', valid_type=ArrayData, required=False,
-                    help='all data that stored in coord.out')
-        spec.output('ams', valid_type=BandsData, required=False,
-                    help='Adiabatic magnon spectrum')
-        spec.output('qpoints', valid_type=ArrayData, required=False,
-                    help='all data that stored in qpoints.out')
-        spec.output('averages', valid_type=ArrayData, required=False,
-                    help='all data that stored in averages.out')
-        spec.output('qm_sweep', valid_type=ArrayData, required=False,
-                    help='all data that stored in qm_sweep.out')
-        spec.output('qm_minima', valid_type=ArrayData, required=False,
-                    help='all data that stored in qm_minima.out')
-        spec.output('mom_states_traj', valid_type=ArrayData, required=False,
-                    help='all data that stored in moment.out')
-        spec.output('dmdata_out', valid_type=ArrayData, required=False,
-                    help='all data that stored in dmdata_xx.out')
-        spec.output('struct_out', valid_type=ArrayData, required=False,
-                    help='all data that stored in dmdata_xx.out')
-        spec.output('cumulants', valid_type=Dict, required=False,
-                    help='Thermodynamoc data stored in dict')
-        spec.output('AMS_plot_var', valid_type=Dict, required=False,
-                    help='AMS_plot data stored in dict')            
-        spec.output('cal_finish_tag', valid_type=Str, required=False,
-                    help='Tags to detect if calculation is finished or not')
-        spec.output('sk_num_out',valid_type=ArrayData, help="skyrmions number ", required=False)
+        spec.output(
+            'totenergy',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in totenergy.out',
+        )
+        spec.output(
+            'coord',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in coord.out',
+        )
+        spec.output(
+            'ams',
+            valid_type=orm.BandsData,
+            required=False,
+            help='Adiabatic magnon spectrum',
+        )
+        spec.output(
+            'qpoints',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in qpoints.out',
+        )
+        spec.output(
+            'averages',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in averages.out',
+        )
+        spec.output(
+            'qm_sweep',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in qm_sweep.out',
+        )
+        spec.output(
+            'qm_minima',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in qm_minima.out',
+        )
+        spec.output(
+            'mom_states_traj',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in moment.out',
+        )
+        spec.output(
+            'dmdata_out',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in dmdata_xx.out',
+        )
+        spec.output(
+            'struct_out',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='all data that stored in dmdata_xx.out',
+        )
+        spec.output(
+            'cumulants',
+            valid_type=orm.Dict,
+            required=False,
+            help='Thermodynamic data stored in dict',
+        )
+        spec.output(
+            'AMS_plot_var',
+            valid_type=orm.Dict,
+            required=False,
+            help='AMS_plot data stored in dict',
+        )
+        spec.output(
+            'cal_finish_tag',
+            valid_type=orm.Str,
+            required=False,
+            help='Tags to detect if calculation is finished or not',
+        )
+        spec.output(
+            'sk_num_out',
+            valid_type=orm.ArrayData,
+            required=False,
+            help='Skyrmion number',
+        )
+
         #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
         #message='Calculation did not produce all expected output files.')
         spec.exit_code(451, 'WallTimeError', message='Hit the max wall time')
@@ -126,7 +185,8 @@ class UppASDCalculation(CalcJob):
         if '.DS_Store' not in except_files:
             except_files.append('.DS_Store')
         filenames = [
-            f for f in os.listdir(filepath) if (os.path.isfile(os.path.join(filepath, f)) and f not in except_files)
+            f for f in os.listdir(filepath) \
+                    if (os.path.isfile(os.path.join(filepath, f)) and f not in except_files)
         ]
         return filenames
 
@@ -185,12 +245,11 @@ class UppASDCalculation(CalcJob):
 
         for name in input_filenames:
             if str(name) != 'inpsd':
-                #I believe all our user are kind people, they will not do evil
-                # things with eval() function :-)
-                # ToDo: replace eval() here to make sure the satisfy
-                local_list.append((eval(name).uuid, eval(name).filename, eval(name).filename))
+                local_list.append((literal_eval(name).uuid, \
+                        literal_eval(name).filename, literal_eval(name).filename))
             else:
-                local_list.append((eval(name).uuid, eval(name).filename, 'inpsd.dat'))
+                local_list.append((literal_eval(name).uuid, \
+                        literal_eval(name).filename, 'inpsd.dat'))
         calcinfo.local_copy_list = local_list
 
         input_retrieve_list_name = self.inputs.retrieve_list_name

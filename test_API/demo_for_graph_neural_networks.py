@@ -23,7 +23,8 @@ def calculate_single_trajectory(temp: orm.Float, hfield: orm.Str):
     :param hfield: value of the magnetic field
     :type hfield: orm.Str
     """
-    code = orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021')
+    #code = orm.Code.get_from_string('uppasd_nsc_2021_test@nsc_uppasd_2021')
+    code = orm.Code.get_from_string('uppasd_dev@uppasd_local')
     #code = Code.get_from_string('uppasd_nsc_2021@nsc_uppasd_2021')
     aiida_uppasd = CalculationFactory('uppasd.uppasd_calculation')
     builder = aiida_uppasd.get_builder()

@@ -84,8 +84,9 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
             required=False,
             # default=lambda: orm.Int(30 * 60)
         )
-        # you could set the maximum iteration time (although it is defined within aiida's base restart workchain, I think it is still good to show here)
-
+        # you could set the maximum iteration time
+        # (although it is defined within aiida's base restart workchain,
+        # I think it is still good to show here)
         spec.input(
             'max_iterations',
             valid_type=orm.Int,
@@ -168,10 +169,10 @@ class ASDBaseRestartWorkChain(BaseRestartWorkChain):
                         'num_machines': self.inputs.num_machines.value,
                         'num_mpiprocs_per_machine': self.inputs.num_mpiprocs_per_machine.value,
                     },
-                    "max_wallclock_seconds": self.inputs.max_wallclock_seconds.value,
-                    "input_filename": self.inputs.input_filename.value,
-                    "parser_name": self.inputs.parser_name.value,
-                    "withmpi": True,
+                    'max_wallclock_seconds': self.inputs.max_wallclock_seconds.value,
+                    'input_filename': self.inputs.input_filename.value,
+                    'parser_name': self.inputs.parser_name.value,
+                    'withmpi': True,
                 },
                 'label': self.inputs.label.value,
                 'description': self.inputs.description.value,
