@@ -9,7 +9,7 @@ from aiida import orm
 from aiida.engine import submit
 from aiida.orm import Code, Float, Int, List, Str
 
-from aiida_uppasd.workflows.ThermalDynamic import ThermalDynamicWorkflow
+from aiida_uppasd.workflows.thermal_dynamic import ThermalDynamicWorkflow
 
 aiida.load_profile()
 current_path = os.getcwd()

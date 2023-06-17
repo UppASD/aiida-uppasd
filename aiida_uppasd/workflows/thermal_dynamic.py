@@ -1,32 +1,24 @@
 # -*- coding: utf-8 -*-
 """Workchain to run an UppASD simulation with automated error handling and restarts."""
 import json
-from random import choices, sample
 
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import asarray, gradient, insert
+from numpy import asarray, gradient
 import plotly.graph_objects as go
 from scipy import integrate
 from scipy.interpolate import InterpolatedUnivariateSpline
 
-from aiida import orm
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
+from aiida.common import AttributeDict
 from aiida.engine import (
-    BaseRestartWorkChain,
-    ExitCode,
-    ProcessHandlerReport,
     ToContext,
     WorkChain,
     calcfunction,
     if_,
-    process_handler,
-    while_,
 )
-from aiida.orm import ArrayData, Bool, Code, Dict, Float, FolderData, Int, List, RemoteData, SinglefileData, Str, XyData
-from aiida.plugins import CalculationFactory, GroupFactory
+from aiida.orm import Dict,Int, List, Str,
+from aiida.plugins import CalculationFactory
 
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 
