@@ -7,54 +7,13 @@ Created on Tue Feb 22 13:03:40 2022
 Workchain demo generating data for Machine Learning
 """
 
-import glob
-# -*- coding: utf-8 -*-
-import imp
-import json
-from math import acos, atan2
-import os
-from random import choices, sample
-import string
-
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import asarray, gradient, insert
 import plotly.graph_objects as go
-from scipy import integrate, ndimage
-from scipy.interpolate import InterpolatedUnivariateSpline
-import vtk
 
-from aiida import orm
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import (
-    BaseRestartWorkChain,
-    ExitCode,
-    ProcessHandlerReport,
-    ToContext,
-    WorkChain,
-    calcfunction,
-    if_,
-    process_handler,
-    while_,
-)
-from aiida.orm import (
-    ArrayData,
-    BandsData,
-    Bool,
-    Code,
-    Dict,
-    Float,
-    FolderData,
-    Int,
-    List,
-    RemoteData,
-    SinglefileData,
-    Str,
-    XyData,
-)
-from aiida.plugins import CalculationFactory, GroupFactory
+from aiida.engine import ToContext, WorkChain, calcfunction, if_
+from aiida.orm import ArrayData, Dict, Int, List, Str
 
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 

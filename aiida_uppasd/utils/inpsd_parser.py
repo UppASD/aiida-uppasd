@@ -158,7 +158,7 @@ def read_posfile(posfile):
     :param: file name for 'posfile'
     """
     try:
-        with open(posfile, 'r') as handler:
+        with open(posfile, 'r', encoding='utf8') as handler:
             lines = handler.readlines()
             cell_positions = np.empty([0, 3])
             cell_numbers = []
@@ -182,17 +182,19 @@ def read_posfile(posfile):
 if __name__ == '__main__':
 
     # Read inpsd file to dict
-    with open('inpsd.dat', 'r') as file_handler:
+    with open('inpsd.dat', 'r', encoding='utf8') as file_handler:
         inpsd_dict = inpsd_to_dict(file_handler)
 
     # Write dict to JSON format
-    with open('inpsd.json', 'w') as file_handler:
+    with open('inpsd.json', 'w', encoding='utf8') as file_handler:
         dict_to_json(inpsd_dict, file_handler)
 
     # Write dict to inpsd format to screen
 
     # Setup structure for later use (spglib or aiida DataStructure)
     pos_exist = False
+    positions = None
+    numbers = None
     if 'posfile' in inpsd_dict.keys():
         positions, numbers = read_posfile(inpsd_dict['posfile'])
         pos_exist = True

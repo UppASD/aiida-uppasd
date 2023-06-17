@@ -2,7 +2,6 @@
 """Workchain to run an UppASD simulation with automated error handling and restarts."""
 import json
 
-from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import asarray, gradient
@@ -11,13 +10,8 @@ from scipy import integrate
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 from aiida.common import AttributeDict
-from aiida.engine import (
-    ToContext,
-    WorkChain,
-    calcfunction,
-    if_,
-)
-from aiida.orm import Dict,Int, List, Str,
+from aiida.engine import ToContext, WorkChain, calcfunction, if_
+from aiida.orm import Dict, Int, List, Str
 from aiida.plugins import CalculationFactory
 
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
@@ -31,7 +25,14 @@ def get_temperature_data(**kwargs):
 
     kb = 1.38064852e-23 / 2.179872325e-21
 
-    _labels = ['temperature', 'magnetization', 'binder_cumulant', 'susceptibility', 'specific_heat', 'energy']
+    _labels = [
+        'temperature',
+        'magnetization',
+        'binder_cumulant',
+        'susceptibility',
+        'specific_heat',
+        'energy',
+    ]
 
     outputs = AttributeDict()
 
@@ -66,7 +67,16 @@ def get_temperature_data(**kwargs):
     return Dict(dict=outputs)
 
 
-def plot_pd(plot_dir, heat_map, x_label_list, y_label_list, plot_name, xlabel, ylabel):
+def plot_pd(
+    plot_dir,
+    heat_map,
+    x_label_list,
+    y_label_list,
+    plot_name,
+    xlabel,
+    ylabel,
+):
+    """Plotting the phase diagram"""
     fig = go.Figure(data=go.Heatmap(
         z=heat_map,
         x=x_label_list,
@@ -80,15 +90,25 @@ def plot_pd(plot_dir, heat_map, x_label_list, y_label_list, plot_name, xlabel, y
     fig.write_image(f"{plot_dir}/{plot_name.replace(' ', '_')}.png")
 
 
-def plot_line(x, y, line_name_list, x_label, y_label, plot_path, plot_name, leg_name_list):
+def plot_line(
+    x,
+    y,
+    line_name_list,
+    x_label,
+    y_label,
+    plot_path,
+    plot_name,
+    leg_name_list,
+):
+    """Line plot"""
     #Since we need all lines in one plot here x and y should be a dict with the line name on that
     plt.figure()
-    fig, ax = plt.subplots()
-    for i in range(len(line_name_list)):
+    _, ax = plt.subplots()
+    for index, _entry in enumerate(line_name_list):
         ax.plot(
             x,
-            y[line_name_list[i]],
-            label=f'{leg_name_list[i]}',
+            y[_entry],
+            label=f'{leg_name_list[index]}',
         )
     ax.legend()
     ax.set_xlabel(x_label)
@@ -191,7 +211,7 @@ class ThermalDynamicWorkflow(WorkChain):
         )  #
 
         spec.output('thermal_dynamic_output', valid_type=Dict, help='Result Dict for temperature')
-        spec.exit_code(701, 'ThermalDynamic_T_error', message='IN TD CALC T LENGTH SHOULD LAGRER THAN 1')
+        spec.exit_code(701, 'ThermalDynamic_T_error', message='IN TD CALC T LENGTH SHOULD LARGER THAN 1')
         spec.outline(
             cls.load_tasks,
             cls.loop_temperatures,
@@ -533,8 +553,7 @@ class ThermalDynamicWorkflow(WorkChain):
             len(self.inputs.external_fields.get_list())
         ) > 1:
             return True
-        else:
-            return False
+        return False
 
     def plot_dudt_phase_diagram(self):
         y_label_list = []
@@ -557,8 +576,7 @@ class ThermalDynamicWorkflow(WorkChain):
             len(self.inputs.external_fields.get_list())
         ) == 1:
             return True
-        else:
-            return False
+        return False
 
     def plot_dudt_T(self):
         line_name_list = []
@@ -573,8 +591,14 @@ class ThermalDynamicWorkflow(WorkChain):
                 line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
                 index = index + 1
         plot_line(
-            self.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'dudt', self.inputs.plot_dir.value,
-            'dudt_T', leg_name_list
+            self.inputs.temperatures.get_list(),
+            line_for_plot,
+            line_name_list,
+            'T',
+            'dudt',
+            self.inputs.plot_dir.value,
+            'dudt_T',
+            leg_name_list,
         )
 
         #binder_cumulant
@@ -658,7 +682,7 @@ class ThermalDynamicWorkflow(WorkChain):
         inputs.inpsd_dict = Dict(dict=self.inputs.inpsd_dict)
         try:
             inputs.exchange = self.inputs.exchange
-        except:
+        except BaseException:
             pass
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
 
@@ -670,7 +694,6 @@ class ThermalDynamicWorkflow(WorkChain):
         for idx, cell_size in enumerate(self.inputs.cell_size):
             for idx_1, eB in enumerate(self.inputs.external_fields):
                 for idx_2, temperature in enumerate(self.inputs.temperatures):
-                    #self.report('Running loop for temperature with value {} and B with value {} and cell size{}'.format(temperature,eB,cell_size))
                     self.inputs.inpsd_dict['temp'] = temperature
                     self.inputs.inpsd_dict['ip_temp'] = temperature
                     self.inputs.inpsd_dict['ip_hfield'] = eB

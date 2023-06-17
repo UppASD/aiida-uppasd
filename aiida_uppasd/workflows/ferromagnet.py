@@ -52,7 +52,7 @@ class UppASDFastFerroWorkflow(WorkChain):
         for task in _fm_tasks:
             self.report(task)
             fname = fpath + str(task) + '.json'
-            with open(fname, 'r') as handler:
+            with open(fname, 'r', encoding='utf8') as handler:
                 self.report(fname)
                 tmp_dict = json.load(handler)
                 task_dict.update(tmp_dict)
