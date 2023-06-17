@@ -19,15 +19,15 @@ load_profile()
 
 def cal_node_query(workchain_pk):
     """Simple query function that helps find output dict"""
-    qb = orm.QueryBuilder()
-    qb.append(
+    query = orm.QueryBuilder()
+    query.append(
         orm.WorkChainNode,
         filters={'id': str(workchain_pk)},
         tag='workflow_node',
     )
-    qb.append(orm.Dict, with_incoming='workflow_node', tag='workdict')
+    query.append(orm.Dict, with_incoming='workflow_node', tag='workdict')
 
-    return qb.all()
+    return query.all()
 
 
 class MCVariableCellWorkchain(WorkChain):

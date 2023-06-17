@@ -118,20 +118,20 @@ def dict_to_inpsd(input_dict, handler=stdout):
     :param handler: file handle for writing to file (optional parameter)
     """
 
-    for key in input_dict.keys():
+    for key, value in input_dict.items():
         if key == 'cell':
-            print(key, np.array2string(input_dict[key][0])[1:-1], file=handler)
-            print('    ', np.array2string(input_dict[key][1])[1:-1], file=handler)
-            print('    ', np.array2string(input_dict[key][2])[1:-1], file=handler)
+            print(key, np.array2string(value[0])[1:-1], file=handler)
+            print('    ', np.array2string(value[1])[1:-1], file=handler)
+            print('    ', np.array2string(value[2])[1:-1], file=handler)
         elif key in special_list:
-            number_lines = input_dict[key][0]
+            number_lines = value[0]
             print(key, number_lines, file=handler)
             for line in range(number_lines):
-                print(' '.join([str(entry) for entry in input_dict[key][line + 1]]), file=handler)
+                print(' '.join([str(entry) for entry in value[line + 1]]), file=handler)
         elif key in vector_arg_list:
-            print(key, ' '.join([str(entry) for entry in input_dict[key]]), file=handler)
+            print(key, ' '.join([str(entry) for entry in value]), file=handler)
         else:
-            print(key, input_dict[key], file=handler)
+            print(key, value, file=handler)
 
 
 def dict_to_json(input_dict, handler=stdout):
@@ -146,8 +146,8 @@ def dict_to_json(input_dict, handler=stdout):
     :param handler: file handle for writing to file (optional parameter)
     """
     print('{', file=handler)
-    for key in input_dict.keys():
-        print('  ', quotes_for_json(key), json_conv(input_dict[key]), file=handler)
+    for key, value in input_dict.items():
+        print('  ', quotes_for_json(key), json_conv(value), file=handler)
     print('  "comment" : "Auto-converted UppASD dict"', file=handler)
     print('}', file=handler)
 
@@ -192,34 +192,34 @@ if __name__ == '__main__':
     # Write dict to inpsd format to screen
 
     # Setup structure for later use (spglib or aiida DataStructure)
-    pos_exist = False
-    positions = None
-    numbers = None
-    if 'posfile' in inpsd_dict.keys():
-        positions, numbers = read_posfile(inpsd_dict['posfile'])
-        pos_exist = True
-    elif 'positions' in inpsd_dict.keys():
-        pos_arr = np.array(inpsd_dict['positions'][1:])
-        positions = pos_arr[:, 2:5]
-        numbers = pos_arr[:, 1]
-        pos_exist = True
+    _POS_EXIST = False
+    _POSITIONS = None
+    _NUMBERS = None
+    if 'posfile' in inpsd_dict:
+        _POSITIONS, _NUMBERS = read_posfile(inpsd_dict['posfile'])
+        _POS_EXIST = True
+    elif 'positions' in inpsd_dict:
+        _POS_ARRAY = np.array(inpsd_dict['positions'][1:])
+        _POSITIONS = _POS_ARRAY[:, 2:5]
+        _NUMBERS = _POS_ARRAY[:, 1]
+        _POS_EXIST = True
 
-    if pos_exist:
-        cell = inpsd_dict['cell']
-        pbc = []
+    if _POS_EXIST:
+        _CELL = inpsd_dict['cell']
+        _PBC = []
         for entry in inpsd_dict['bc']:
-            pbc.append(entry == 'P')
-        print('pbc:', pbc)
-        spgcell = (cell, positions, numbers)
+            _PBC.append(entry == 'P')
+        print('pbc:', _PBC)
+        _SPGCELL = (_CELL, _POSITIONS, _NUMBERS)
 
-        structure = spglib_tuple_to_structure(spgcell)
-        structure.set_pbc(pbc)
+        _STRUCTURE = spglib_tuple_to_structure(_SPGCELL)
+        _STRUCTURE.set_pbc(_PBC)
         print('----------')
-        print(structure.pbc)
-        print(structure.cell)
-        print(structure.sites)
+        print(_STRUCTURE.pbc)
+        print(_STRUCTURE.cell)
+        print(_STRUCTURE.sites)
         print('----------')
-        kp = get_kpoints_path(structure, method='seekpath')
-        print(kp.keys())
-        print(kp['parameters']['point_coords'])
-        print(kp['parameters']['path'])
+        _KPOINTS = get_kpoints_path(_STRUCTURE, method='seekpath')
+        print(_KPOINTS.keys())
+        print(_KPOINTS['parameters']['point_coords'])
+        print(_KPOINTS['parameters']['path'])

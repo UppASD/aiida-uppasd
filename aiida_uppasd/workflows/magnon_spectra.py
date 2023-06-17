@@ -77,7 +77,7 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             cls.results_and_plot,
         )
 
-    def generate_inputs_and_validation_exchange_model(self):
+    def gen_inputs_validate_exch_model(self):
         """
         Generate the inputs needed for the workchain
 
@@ -112,7 +112,7 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         Submit the calculations needed
         """
         calculations = {}
-        inputs = self.generate_inputs_and_validation_exchange_model()
+        inputs = self.gen_inputs_validate_exch_model()
         future = self.submit(ASDBaseRestartWorkChain, **inputs)
         #modify here to make a loop if needed
         calculations['AMS'] = future
