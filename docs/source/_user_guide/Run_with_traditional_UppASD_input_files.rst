@@ -21,7 +21,7 @@ dmdata file described the DM interaction,
 momfile includes the atomic moments......
 
 The first taste of UppASD-AiiDA interface should be start with this traditional UppASD input folder directly,
-with prepared folder (you could find the folder in aiida-uppasd/test_API/demo1_input) we could start writing our first caljob codes:
+with prepared folder (you could find the folder in aiida-uppasd/tests/demo1_input) we could start writing our first caljob codes:
 
 Firstly, we need import needed packages:
 
@@ -37,7 +37,7 @@ Firstly, we need import needed packages:
     from aiida.engine import submit
     aiida.load_profile() #for interactive model 
 
-then choose the code and set calculation method from UppASD_AiiDA inferface:
+then choose the code and set calculation method from UppASD_AiiDA interface:
 
 .. code-block::
     :linenos:
