@@ -3,13 +3,16 @@
 Parser for UppASD
 '''
 import json
+
 import numpy as np
 import seekpath as spth
+
 from aiida import orm
+from aiida.common.exceptions import NotExistent
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
-from aiida.common.exceptions import NotExistent
+
 from aiida_uppasd.parsers.raw_parsers import parse_inpsd, parse_posfile, parser_array_file
 
 ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')

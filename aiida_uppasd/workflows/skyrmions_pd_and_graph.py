@@ -3,74 +3,56 @@
 """
 Created on Tue Feb 22 13:03:40 2022
 
-@author Qichen Xu 
+@author Qichen Xu
 Workchain demo for plot magnon spectra
 
 In this workchain demo we want to use the same method like baserestartworkchain.
 This workchain only takes output and do the magnon spectra plot task
 
-For activate J1 J2 J3 .... mode(the nearest model, next nearest mode etc.) We add one validation function here to check if people want to use this or offer exchange file directly
+For activate J1 J2 J3 .... mode(the nearest model, next nearest mode etc.)
+We add one validation function here to check if people want to use this or
+offer exchange file directly
 
-several functions are base on codes from UppASD repo like preQ.py and postQ.py which @Anders bergman
+several functions are base on codes from UppASD repo like preQ.py and postQ.py
+which @Anders bergman
 """
 
-
-# -*- coding: utf-8 -*-
-import imp
-from aiida import orm
-from aiida.common import AttributeDict, exceptions
-from aiida.common.lang import type_check
-from aiida.engine import ToContext, if_, while_, WorkChain,BaseRestartWorkChain, process_handler, ProcessHandlerReport, ExitCode, calcfunction
-from aiida.plugins import CalculationFactory, GroupFactory
-from aiida.orm import Code, SinglefileData, BandsData,Int, Float, Str, Bool, List, Dict, ArrayData, XyData, SinglefileData, FolderData, RemoteData
-from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
-from numpy import gradient,asarray,insert
-from scipy import integrate
-from scipy.interpolate import InterpolatedUnivariateSpline
-import json
-import matplotlib.pyplot as plt
-from scipy import ndimage
-import numpy as np
-import vtk
-from math import atan2, acos
-import glob
-import string
-import os
 from PIL import Image
-from random import sample, choices
+import matplotlib.pyplot as plt
+import numpy as np
 import plotly.graph_objects as go
+import vtk
 
-'''
-Block: those visualization code are taken from UppASD repo  @Anders bergman, modified by @Qichen Xu
-'''
+from aiida.engine import ToContext, WorkChain, calcfunction, if_
+from aiida.orm import ArrayData, Dict, Int, List, Str
+
+from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
+
 
 # Read Location of Atoms
-def readAtoms(coord_array_data,Nmax):
+def read_atoms(coord_array_data, max_number_atoms):
+    """Transform the atomic positions to VTK structure"""
 
     points = vtk.vtkPoints()
-    nrAtoms =  0
+    number_atoms = 0
     # Read ahead
 
     # Read all data
     for data in coord_array_data.get_array('coord'):
-        if nrAtoms <= Nmax:
-            x, y, z = float(data[1]), float(data[2]), float(data[3])
-            #print "a ", a, " x ", x, " y ", y, " z ", z  
-            #points.InsertPoint(a, x, y, z)
-            points.InsertPoint(nrAtoms, x, y, z)
-        nrAtoms = nrAtoms+1
-    return points, nrAtoms
+        if number_atoms <= max_number_atoms:
+            coord_x, coord_y, coord_z = float(data[1]), float(data[2]), float(data[3])
+            points.InsertPoint(number_atoms, coord_x, coord_y, coord_z)
+        number_atoms = number_atoms + 1
+    return points, number_atoms
 
 
-
-
-                
 # Read vectors
 # We must know the time step and the number of atoms per time
-def readVectorsData(mom_states, nrAtoms,Nmax):
-    final_mom_states_x = mom_states.get_array('mom_states_x')[-nrAtoms:]
-    final_mom_states_y = mom_states.get_array('mom_states_y')[-nrAtoms:]
-    final_mom_states_z = mom_states.get_array('mom_states_z')[-nrAtoms:]
+def read_vectors_data(mom_states, number_atoms):
+    """Transform the magnetic moments to VTK structure"""
+    final_mom_states_x = mom_states.get_array('mom_states_x')[-number_atoms:]
+    final_mom_states_y = mom_states.get_array('mom_states_y')[-number_atoms:]
+    final_mom_states_z = mom_states.get_array('mom_states_z')[-number_atoms:]
     # Create a Double array which represents the vectors
     vectors = vtk.vtkFloatArray()
     colors = vtk.vtkFloatArray()
@@ -78,133 +60,72 @@ def readVectorsData(mom_states, nrAtoms,Nmax):
     # Define number of elemnts
     vectors.SetNumberOfComponents(3)
     colors.SetNumberOfComponents(1)
-    
-    for i in range(nrAtoms):
-        x, y, z = float(final_mom_states_x[i]), float(final_mom_states_y[i]), float(final_mom_states_z[i])
-        m = (z+1.0)/2.0
-        vectors.InsertTuple3(i ,x, y, z)
-        colors.InsertValue(i ,m)
-        i=i+1
+
+    for index in range(number_atoms):
+        vec_x, vec_y, vec_z = float(final_mom_states_x[index]), float(final_mom_states_y[index]
+                                                                      ), float(final_mom_states_z[index])
+        _color = (vec_z + 1.0) / 2.0
+        vectors.InsertTuple3(index, vec_x, vec_y, vec_z)
+        colors.InsertValue(index, _color)
     return vectors, colors
 
+
 #----------------------------
-# Screenshot code begins here
+# screenshot code begins here
 #----------------------------
 #A function that takes a renderwindow and saves its contents to a .png file
-def Screenshot(renWin,T,B,plot_dir):
-    global number_of_screenshots
-    win2im=vtk.vtkWindowToImageFilter()
+def screenshot(ren_win, temperature, field, plot_dir):
+    """Take a screenshot of the magnetic configuration and save it as a png"""
+    win2im = vtk.vtkWindowToImageFilter()
     win2im.ReadFrontBufferOff()
-    win2im.SetInput(renWin)
+    win2im.SetInput(ren_win)
     #
-    povexp=vtk.vtkPOVExporter()
-    povexp.SetRenderWindow(renWin)
+    povexp = vtk.vtkPOVExporter()
+    povexp.SetRenderWindow(ren_win)
     #povexp.SetInput(renWin)
-    renWin.Render()
-    # povexp.SetFileName('realspace_plot_T_{}_B_{}.pov'.format(T,B))
+    ren_win.Render()
+    # ren_win.SetFileName('realspace_plot_T_{}_B_{}.pov'.format(T,B))
     # povexp.Write()
     #
-    toPNG=vtk.vtkPNGWriter()
-    toPNG.SetFileName('{}/T{}B{}.png'.format(plot_dir,T,B))
-    #toPNG.SetInput(win2im.GetOutput())
-    toPNG.SetInputConnection(win2im.GetOutputPort())
-    toPNG.Write()
+    to_png = vtk.vtkPNGWriter()
+    to_png.SetFileName(f'{plot_dir}/T{temperature}B{field}.png')
+    to_png.SetInputConnection(win2im.GetOutputPort())
+    to_png.Write()
     return 0
-#---------------------------
-# Screenshot code ends here
-#---------------------------
-
-#---------------------------
-# Timer code starts here
-#---------------------------
-# class vtkTimerCallback():
-#     def __init__(self,T,B):
-#         self.timer_count = 0
-#         self.t_str = T
-#         self.b_str = B
-
-#     def execute(self,obj,event):
-#         vecz,colz=(vectors, colors)
-#         #print "Set data.."
-#         Datatest.GetPointData().SetVectors(vecz)
-#         Datatest.GetPointData().SetScalars(colz)
-#         DataScal.GetPointData().SetScalars(colz)
-#         iren = obj
-#         #iren.GetRenderWindow().Render()
-#         Screenshot(iren.GetRenderWindow(), self.t_str,self.b_str)
-#         self.timer_count += 1
 
 
-
-def plot_realspace(points, nrAtoms,vectors, colors,Nmax,T,B,plot_dir):
-    renWin = vtk.vtkRenderWindow()
-    #win2im=vtk.vtkWindowToImageFilter()
-    ##win2im.SetRenderWindow(renWin)
-    #win2im.SetInput(renWin)
-    # Create the RenderWindow,Renderer and Interactor
-    #ren = vtk.vtkRenderer()
-    #renWin.AddRenderer(ren)
-    #ren = vtk.vtkRenderer()
+def plot_realspace(points, vectors, colors, temperature, field, plot_dir):  #pylint: disable=too-many-statements,too-many-locals
+    """Plot the real space magnetic configuration"""
+    ren_win = vtk.vtkRenderWindow()
     ren = vtk.vtkOpenGLRenderer()
-    renWin.AddRenderer(ren)
+    ren_win.AddRenderer(ren)
 
+    # Set color of backgroung
+    ren.SetBackground(1.0, 1.0, 1.0)
+    ren_win.SetSize(2096, 1280)
 
-    # Set color of backgroung 
-    #ren.SetBackground(0.0, 0.0, 0.0)
-    ren.SetBackground(1.0,1.0,1.0)
-    renWin.SetSize(2096, 1280)
-    #renWin.SetSize(960,960)
-
-
-    #Datatest=vtk.vtkUnstructuredGrid()
-    Datatest=vtk.vtkPolyData()
-    DataScal=vtk.vtkUnstructuredGrid()
-
-
-
-
-    
-
-    # Viewing distance
-    # decrease number to zoom out and vice versa
-    dollyA=0.014
-    dollyB=0.000
-    # # Open files
-    # momfiles=glob.glob("restart.SCsurf_T.out")
-    # directionsFile = open(momfiles[0])
-    # #directionsFile = open("momentsparsed.out")
-    # posfiles=glob.glob("coord.SCsurf_T.out")
-    # #print posfiles
-    # atomsFile = open(posfiles[0])
-    # #atomsFile = open("atomsparsed.out")
+    data_test = vtk.vtkPolyData()
+    data_scal = vtk.vtkUnstructuredGrid()
 
     # Read atom positions
-    atomData,nrAtoms=(points, nrAtoms)
-    #print nrAtoms
-    Datatest.SetPoints(atomData)
-    DataScal.SetPoints(atomData)
+    atom_data = points
+    data_test.SetPoints(atom_data)
+    data_scal.SetPoints(atom_data)
 
     # Read data for vectors
-    #for i in range(0,55,1):
-    vecz,colz=(vectors, colors)
-    Datatest.GetPointData().SetVectors(vecz)
-    Datatest.GetPointData().SetScalars(colz)
-    DataScal.GetPointData().SetScalars(colz)
+    vecz, colz = (vectors, colors)
+    data_test.GetPointData().SetVectors(vecz)
+    data_test.GetPointData().SetScalars(colz)
+    data_scal.GetPointData().SetScalars(colz)
 
     # Create colortable for the coloring of the vectors
     lut = vtk.vtkLookupTable()
-    #for i in range(0,255,1):
-    #    lut.SetTableValue(i,i/255.0,0.6*i/255.0,0,1)
-    ##    #lut.SetTableValue(i,255.0*(1.0-i/255.0),00.0*(1.0-i/255.0),0,1)
-    ##    #lut.SetTableValue(i,255.0*(1.0-i/255.0),200.0*(1.0-i/255.0),0,1)
-    for i in range(0,128,1):
-        lut.SetTableValue(i,(127.0-i)/127.0,i/127.0,0,1)
-    for i in range(128,256,1):
-        lut.SetTableValue(i,0,(256.0-i)/128.0,(i-128.0)/128,1)
-    #lut.SetTableRange(0.0,1.0);
-    lut.SetTableRange(-1.0,1.0);
+    for i in range(0, 128, 1):
+        lut.SetTableValue(i, (127.0 - i) / 127.0, i / 127.0, 0, 1)
+    for i in range(128, 256, 1):
+        lut.SetTableValue(i, 0, (256.0 - i) / 128.0, (i - 128.0) / 128, 1)
+    lut.SetTableRange(-1.0, 1.0)
     lut.Build()
-
 
     # Set up atoms
     ball = vtk.vtkSphereSource()
@@ -213,33 +134,23 @@ def plot_realspace(points, nrAtoms,vectors, colors,Nmax,T,B,plot_dir):
     ball.SetPhiResolution(16)
 
     balls = vtk.vtkGlyph3DMapper()
-    #balls.SetInputConnection(Datatest.GetProducerPort())
-    balls.SetInputData(Datatest)
+    balls.SetInputData(data_test)
     balls.SetSourceConnection(ball.GetOutputPort())
     balls.SetScaleFactor(0.15)
-    #balls.SetVectorModeToUseVector()
-    #balls.SetColorModeToColorByVector()
-    balls.SetScaleModeToNoDataScaling()
+    balls.SetScaleModeToNodata_scaling()
     balls.SetLookupTable(lut)
     balls.Update()
 
     atom = vtk.vtkLODActor()
     atom.SetMapper(balls)
     atom.GetProperty().SetOpacity(1.5)
-    xmin,xmax = atom.GetXRange()
-    ymin,ymax = atom.GetYRange()
-    zmin,zmax = atom.GetZRange()
-    xmid = (xmin+xmax)/2
-    ymid = (ymin+ymax)/2
-    zmid = (zmin+zmax)/2
-    #Good position for "z-direction"
-    atom.SetPosition(-xmid,-ymid,-zmid)
-    #Good position for "xy-direction"
-    #atom.SetPosition(-xmid*1.4,-ymid,-zmid)
-
-    # Set the color
-    #atom.GetProperty().SetColor(0.2,0.2,0.2)
-    #atom.GetProperty().SetSpecularColor(1.0, 0.2, 0.2)
+    xmin, xmax = atom.GetXRange()
+    ymin, ymax = atom.GetYRange()
+    zmin, zmax = atom.GetZRange()
+    xmid = (xmin + xmax) / 2
+    ymid = (ymin + ymax) / 2
+    zmid = (zmin + zmax) / 2
+    atom.SetPosition(-xmid, -ymid, -zmid)
     atom.GetProperty().SetSpecular(0.3)
     atom.GetProperty().SetSpecularPower(60)
     atom.GetProperty().SetAmbient(0.2)
@@ -254,34 +165,17 @@ def plot_realspace(points, nrAtoms,vectors, colors,Nmax,T,B,plot_dir):
 
     glyph = vtk.vtkGlyph3DMapper()
     glyph.SetSourceConnection(arrow.GetOutputPort())
-    #glyph.SetInputConnection(Datatest.GetProducerPort())
-    glyph.SetInputData(Datatest)
-    #glyph.SetInput(Datatest) # Position and direction
+    glyph.SetInputData(data_test)
     glyph.SetScaleFactor(2.00)
     # Color the vectors according to magnitude
-    #glyph.SetVectorModeToUseVector()
-    #glyph.SetColorModeToColorByVector()
-    glyph.SetScaleModeToNoDataScaling()
-    #glyph.Update()
-
-    #glyphMapper = vtk.vtkPolyDataMapper()
-    #glyphMapper.SetInput(glyph.GetOutput())
-    #glyphMapper.SetLookupTable(lut)
+    glyph.SetScaleModeToNodata_scaling()
     glyph.SetLookupTable(lut)
-    #glyph.ColorByArrayComponent(0,0)
-    #glyph.UseLookupTableScalarRangeOn()
     glyph.SetColorModeToMapScalars()
-    #glyph.SetScalarModeToUseFieldData()
-    #glyph.ScalarVisibilityOn()
     glyph.Update()
-
 
     vector = vtk.vtkLODActor()
     vector.SetMapper(glyph)
-    #Good position for "z-direction"
-    vector.SetPosition(-xmid,-ymid,-zmid)
-    #Good position for "xy-direction"
-    #vector.SetPosition(-xmid*1.4,-ymid,-zmid)
+    vector.SetPosition(-xmid, -ymid, -zmid)
 
     vector.GetProperty().SetSpecular(0.3)
     vector.GetProperty().SetSpecularPower(60)
@@ -290,30 +184,28 @@ def plot_realspace(points, nrAtoms,vectors, colors,Nmax,T,B,plot_dir):
     vector.GetProperty().SetOpacity(1.0)
 
     # Scalar bar
-    scalarBar=vtk.vtkScalarBarActor()
-    scalarBar.SetLookupTable(lut)
-    scalarBar.SetOrientationToHorizontal()
-    scalarBar.SetNumberOfLabels(0)
-    scalarBar.SetPosition(0.1 ,0.05)
-    scalarBar.SetWidth(0.85)
-    scalarBar.SetHeight(0.3)
-    scalarBar.GetLabelTextProperty().SetFontSize(8)
+    scalar_bar = vtk.vtkScalarBarActor()
+    scalar_bar.SetLookupTable(lut)
+    scalar_bar.SetOrientationToHorizontal()
+    scalar_bar.SetNumberOfLabels(0)
+    scalar_bar.SetPosition(0.1, 0.05)
+    scalar_bar.SetWidth(0.85)
+    scalar_bar.SetHeight(0.3)
+    scalar_bar.GetLabelTextProperty().SetFontSize(8)
 
     #Depth sorted field
-    dsDatatest=vtk.vtkDepthSortPolyData()
-    #dsDatatest.SetInputConnection(Datatest.GetProducerPort())
-    dsDatatest.SetInputData(Datatest)
-    dsDatatest.SetCamera(ren.GetActiveCamera())
-    dsDatatest.SortScalarsOn()
-    dsDatatest.Update()
+    data_test = vtk.vtkDepthSortPolyData()
+    data_test.SetInputData(data_test)
+    data_test.SetCamera(ren.GetActiveCamera())
+    data_test.SortScalarsOn()
+    data_test.Update()
 
     #cubes
     cube = vtk.vtkCubeSource()
     cubes = vtk.vtkGlyph3DMapper()
-    #cubes.SetInputConnection(Datatest.GetProducerPort())
-    cubes.SetInputConnection(dsDatatest.GetOutputPort())
+    cubes.SetInputConnection(data_test.GetOutputPort())
     cubes.SetSourceConnection(cube.GetOutputPort())
-    cubes.SetScaleModeToNoDataScaling()
+    cubes.SetScaleModeToNodata_scaling()
     cubes.SetScaleFactor(0.995)
     cubes.SetLookupTable(lut)
     cubes.SetColorModeToMapScalars()
@@ -322,183 +214,128 @@ def plot_realspace(points, nrAtoms,vectors, colors,Nmax,T,B,plot_dir):
     cubes.Update()
     cubes.SetLookupTable(lut)
 
-    cubeActor = vtk.vtkActor()
-    cubeActor.SetMapper(cubes)
-    cubeActor.GetProperty().SetOpacity(0.05)
-    cubeActor.SetPosition(-xmid,-ymid,-zmid)
+    cube_actor = vtk.vtkActor()
+    cube_actor.SetMapper(cubes)
+    cube_actor.GetProperty().SetOpacity(0.05)
+    cube_actor.SetPosition(-xmid, -ymid, -zmid)
 
     #hedgehog
-    hhog=vtk.vtkHedgeHog()
-    #hhog.SetInputConnection(Datatest.GetProducerPort())
-    hhog.SetInputData(Datatest)
+    hhog = vtk.vtkHedgeHog()
+    hhog.SetInputData(data_test)
     hhog.SetScaleFactor(5.0)
-    hhogMapper=vtk.vtkPolyDataMapper()
-    hhogMapper.SetInputConnection(hhog.GetOutputPort())
-    hhogMapper.SetLookupTable(lut)
-    hhogMapper.ScalarVisibilityOn()
-    hhogActor=vtk.vtkActor()
-    hhogActor.SetMapper(hhogMapper)
-    hhogActor.SetPosition(-xmid,-ymid,-zmid)
+    hhog_mapper = vtk.vtkPolyDataMapper()
+    hhog_mapper.SetInputConnection(hhog.GetOutputPort())
+    hhog_mapper.SetLookupTable(lut)
+    hhog_mapper.ScalarVisibilityOn()
+    hhog_actor = vtk.vtkActor()
+    hhog_actor.SetMapper(hhog_mapper)
+    hhog_actor.SetPosition(-xmid, -ymid, -zmid)
 
-    #cut plane 
-    plane=vtk.vtkPlane()
-    plane.SetOrigin(DataScal.GetCenter())
-    plane.SetNormal(0.0,0.0,1.0)
-    planeCut=vtk.vtkCutter()
-    #planeCut.SetInputConnection(DataScal.GetProducerPort())
-    planeCut.SetInputData(DataScal)
-    planeCut.SetInputArrayToProcess(0,0,0,vtk.vtkDataObject().FIELD_ASSOCIATION_POINTS,vtk.vtkDataSetAttributes().SCALARS)
-    planeCut.SetCutFunction(plane)
-    planeCut.GenerateCutScalarsOff()
-    planeCut.SetSortByToSortByCell()
+    #cut plane
+    plane = vtk.vtkPlane()
+    plane.SetOrigin(data_scal.GetCenter())
+    plane.SetNormal(0.0, 0.0, 1.0)
+    plane_cut = vtk.vtkCutter()
+    plane_cut.SetInputData(data_scal)
+    plane_cut.SetInputArrayToProcess(
+        0, 0, 0,
+        vtk.vtkDataObject().FIELD_ASSOCIATION_POINTS,
+        vtk.vtkDataSetAttributes().SCALARS
+    )
+    plane_cut.SetCutFunction(plane)
+    plane_cut.GenerateCutScalarsOff()
+    plane_cut.SetSortByToSortByCell()
     clut = vtk.vtkLookupTable()
     clut.SetHueRange(0, .67)
     clut.Build()
-    planeMapper=vtk.vtkPolyDataMapper()
-    planeMapper.SetInputConnection(planeCut.GetOutputPort())
-    planeMapper.ScalarVisibilityOn()
-    planeMapper.SetScalarRange(DataScal.GetScalarRange())
-    #print DataScal.GetScalarRange()
-    #print planeCut
-    planeMapper.SetLookupTable(clut)
-    planeActor=vtk.vtkActor()
-    planeActor.SetMapper(planeMapper)
-    #print planeMapper
+    plane_mapper = vtk.vtkPolyDataMapper()
+    plane_mapper.SetInputConnection(plane_cut.GetOutputPort())
+    plane_mapper.ScalarVisibilityOn()
+    plane_mapper.SetScalarRange(data_scal.GetScalarRange())
+    plane_mapper.SetLookupTable(clut)
+    plane_actor = vtk.vtkActor()
+    plane_actor.SetMapper(plane_mapper)
 
-    #clip plane 
-    planeClip=vtk.vtkClipDataSet()
-    planeClip.SetInputData(DataScal)
-    planeClip.SetInputArrayToProcess(0,0,0,vtk.vtkDataObject().FIELD_ASSOCIATION_POINTS,vtk.vtkDataSetAttributes().SCALARS)
-    #planeClip.SetInputConnection(DataScal.GetProducerPort())
-    planeClip.SetClipFunction(plane)
-    #print planeClip
-    planeClip.InsideOutOn()
-    #planeClip.GenerateCutScalarsOff()
-    #planeClip.SetSortByToSortByCell()
-    clipMapper=vtk.vtkDataSetMapper()
-    clipMapper.SetInputConnection(planeCut.GetOutputPort())
-    clipMapper.ScalarVisibilityOn()
-    clipMapper.SetScalarRange(DataScal.GetScalarRange())
-    clipMapper.SetLookupTable(clut)
-    #print clipMapper
-    clipActor=vtk.vtkActor()
-    clipActor.SetMapper(clipMapper)
-    #print planeMapper
+    #clip plane
+    plane_clip = vtk.vtkClipDataSet()
+    plane_clip.SetInputData(data_scal)
+    plane_clip.SetInputArrayToProcess(
+        0, 0, 0,
+        vtk.vtkDataObject().FIELD_ASSOCIATION_POINTS,
+        vtk.vtkDataSetAttributes().SCALARS
+    )
+    plane_clip.SetClipFunction(plane)
+    plane_clip.InsideOutOn()
+    clip_mapper = vtk.vtkDataSetMapper()
+    clip_mapper.SetInputConnection(plane_cut.GetOutputPort())
+    clip_mapper.ScalarVisibilityOn()
+    clip_mapper.SetScalarRange(data_scal.GetScalarRange())
+    clip_mapper.SetLookupTable(clut)
+    clip_actor = vtk.vtkActor()
+    clip_actor.SetMapper(clip_mapper)
 
     # Bounding box
-    outlineData = vtk.vtkOutlineFilter()
-    #outlineData.SetInputConnection(Datatest.GetProducerPort())
-    outlineData.SetInputData(Datatest)
-    outlineMapper = vtk.vtkPolyDataMapper()
-    outlineMapper.SetInputConnection(outlineData.GetOutputPort())
-    #outlineMapper.SetInput(outlineData.GetOutput())
+    outline_data = vtk.vtkOutlineFilter()
+    outline_data.SetInputData(data_test)
+    outline_mapper = vtk.vtkPolyDataMapper()
+    outline_mapper.SetInputConnection(outline_data.GetOutputPort())
     outline = vtk.vtkActor()
-    outline.SetMapper(outlineMapper)
+    outline.SetMapper(outline_mapper)
     outline.GetProperty().SetColor(0, 0, 0)
     outline.GetProperty().SetLineWidth(5.0)
-    outline.SetPosition(-xmid,-ymid,-zmid)
+    outline.SetPosition(-xmid, -ymid, -zmid)
 
     # Text
-    # create a text actor
     txt = vtk.vtkTextActor()
-    txt.SetInput("T = TEMP K")
-    txtprop=txt.GetTextProperty()
+    txt.SetInput('T = TEMP K')
+    txtprop = txt.GetTextProperty()
     txtprop.SetFontFamilyToArial()
     txtprop.SetFontSize(36)
-    txtprop.SetColor(0,0,0)
-    txt.SetDisplayPosition(30,550)
+    txtprop.SetColor(0, 0, 0)
+    txt.SetDisplayPosition(30, 550)
 
     # Reposition the camera
-    # z-direction
     ren.GetActiveCamera().Azimuth(0)
     ren.GetActiveCamera().Elevation(0)
-    # xy-direction (almost)
-    #ren.GetActiveCamera().Azimuth(105)
-    #ren.GetActiveCamera().Roll(90)
-    #ren.GetActiveCamera().Dolly(dollyA)
     ren.GetActiveCamera().ParallelProjectionOn()
-    #ren.GetActiveCamera().ParallelProjectionOff()
-    d = ren.GetActiveCamera().GetDistance()
-    #ren.GetActiveCamera().SetParallelScale(0.55*max(zmax,xmax))
-    ren.GetActiveCamera().SetFocalPoint(0,0,0)
-    #ren.GetActiveCamera().SetViewUp(-0.866025403784439,0.5,0)
-    ren.GetActiveCamera().SetViewUp(0,1,0)
-    ren.GetActiveCamera().SetParallelScale(0.55*ymax)
-    #ren.GetActiveCamera().SetPosition(0,0,-100*d)
-    #print ren.GetActiveCamera().GetViewAngle()
-    l = max(xmax-xmin,zmax-zmin)/2
-    h = l/0.26795*1.1
-    #print l,h
+    ren.GetActiveCamera().SetFocalPoint(0, 0, 0)
+    ren.GetActiveCamera().SetViewUp(0, 1, 0)
+    ren.GetActiveCamera().SetParallelScale(0.55 * ymax)
+    _length = max(xmax - xmin, zmax - zmin) / 2
+    _height = _length / 0.26795 * 1.1
 
-    ren.GetActiveCamera().SetPosition(0,0,h)
-    #ren.GetActiveCamera().SetPosition(0,0,50*d)
-
-    # For the interactive control. Set up a check for aborting rendering.
-    # def CheckAbort(obj, event):
-    #     # obj will be the object generating the event.  In this case it
-    #     # is renWin.    
-    #     if obj.GetEventPending() != 0:
-    #         obj.SetAbortRender(1)
-
-    #renWin.AddObserver("AbortCheckEvent", CheckAbort)
-
-    # Add the actors to the renderer, set the background and size
-    # Atoms
-    #ren.AddActor(atom)
-    #ren.AddActor(txt)
-    # Vectors
+    ren.GetActiveCamera().SetPosition(0, 0, _height)
     ren.AddActor(vector)
-    # Cubes
-    #ren.AddActor(cubeActor)
-    # HedgeHog
-    #ren.AddActor(hhogActor)
-    # CutPlane
-    #ren.AddActor(planeActor)
-    # ClipPlane
-    #ren.AddActor(clipActor)
-    # Outline
-    #ren.AddActor(outline)
-    # Scalar bar
-    #ren.AddActor(scalarBar)
 
     # Render scene
     iren = vtk.vtkRenderWindowInteractor()
     istyle = vtk.vtkInteractorStyleTrackballCamera()
     iren.SetInteractorStyle(istyle)
-    iren.SetRenderWindow(renWin)
-    #ren.ResetCamera()
+    iren.SetRenderWindow(ren_win)
     iren.Initialize()
-    #
-    #
-    #cb = vtkTimerCallback(T,B)
-    ###cb.AddActor = vector
-    #iren.AddObserver('TimerEvent', cb.execute)
-    #timerId = iren.CreateRepeatingTimer(100);
-    #iren.SetStillUpdateRate(0.050)
-    #iren.SetDesiredUpdateRate(0.050)
-    renWin.Render()
-    #iren.Start()
-    Screenshot(renWin,T,B,plot_dir)
+    ren_win.Render()
+    screenshot(ren_win, temperature, field, plot_dir)
 
-
-'''
-Block: those visualization code are taken from UppASD repo  @Anders bergman modified by @Qichen Xu
-'''
 
 @calcfunction
-def store_sknum_data(sky_num_out,sky_avg_num_out):
+def store_sknum_data(sky_num_out, sky_avg_num_out):
+    """Store the skyrmion number and average skyrmion number as arrays"""
     sk_num_for_plot = ArrayData()
-    sk_num_for_plot.set_array('sky_num_out',np.array(sky_num_out.get_list()))
-    sk_num_for_plot.set_array('sky_avg_num_out',np.array(sky_avg_num_out.get_list()))
+    sk_num_for_plot.set_array('sky_num_out', np.array(sky_num_out.get_list()))
+    sk_num_for_plot.set_array('sky_avg_num_out', np.array(sky_avg_num_out.get_list()))
     return sk_num_for_plot
 
 
 class UppASDSkyrmionsWorkflow(WorkChain):
-    """base workchain for skyrmions 
+    """base workchain for skyrmions
     what we have in this workchain:
-    1. generate skyrmions phase diagram and single plot via flag sk_plot, generate single plot only if we have one B and one T, otherwise provide phase diagram. 
-    # 2. generate graph database for machine learning training, here we use DGL https://www.dgl.ai/. if flag 'ML_graph' is 1, we need additional input to generate data. e.g.   !! this target is moved to another workflow
-    3. B list 
+    1. generate skyrmions phase diagram and single plot via flag sk_plot, \
+        generate single plot only if we have one B and one T, \
+        otherwise provide phase diagram.
+    # 2. generate graph database for machine learning training, here we use \
+        DGL https://www.dgl.ai/. if flag 'ML_graph' is 1, we need additional \
+        input to generate data. e.g.   !! this target is moved to another workflow
+    3. B list
     4. T list
     """
 
@@ -507,83 +344,116 @@ class UppASDSkyrmionsWorkflow(WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         spec.expose_inputs(ASDBaseRestartWorkChain)
-        spec.expose_outputs(ASDBaseRestartWorkChain,include=['cumulants'])
-        
-        spec.input('sk_plot', valid_type=Int,
-                   help='flag for plotting skyrmions', required=False)
-        spec.input('sk_number_plot', valid_type=Int,
-                   help='flag for generating graph database ', required=False)
-        spec.input('average_magnetic_moment_plot', valid_type=Int,
-                   help='flag for average_magnetic_moment plot', required=False)
-        spec.input('average_specific_heat_plot', valid_type=Int,
-                   help='flag for average specific heat plot', required=False)
-        spec.input('plot_individual', valid_type=Int,
-                   help='flag for plotting skyrmions',default=lambda:Int(0), required=False)
-        spec.input('plot_combine', valid_type=Int,
-                   help='flag for plotting skyrmions', default=lambda:Int(0),required=False)
+        spec.expose_outputs(ASDBaseRestartWorkChain, include=['cumulants'])
 
+        spec.input(
+            'sk_plot',
+            valid_type=Int,
+            help='flag for plotting skyrmions',
+            required=False,
+        )
+        spec.input(
+            'sk_number_plot',
+            valid_type=Int,
+            help='flag for generating graph database ',
+            required=False,
+        )
+        spec.input(
+            'average_magnetic_moment_plot',
+            valid_type=Int,
+            help='flag for average_magnetic_moment plot',
+            required=False
+        )
+        spec.input(
+            'average_specific_heat_plot',
+            valid_type=Int,
+            help='flag for average specific heat plot',
+            required=False,
+        )
+        spec.input(
+            'plot_individual',
+            valid_type=Int,
+            help='flag for plotting skyrmions',
+            default=lambda: Int(0),
+            required=False
+        )
+        spec.input(
+            'plot_combine',
+            valid_type=Int,
+            help='flag for plotting skyrmions',
+            default=lambda: Int(0),
+            required=False,
+        )
 
-        spec.input('inpsd_skyr', valid_type=Dict,
-                   help='dict of inpsd.dat', required=False)  # default=lambda: Dict(dict={})
+        spec.input(
+            'inpsd_skyr',
+            valid_type=Dict,
+            help='dict of inpsd.dat',
+            required=False,
+        )
 
-        spec.input('temperatures', valid_type=List,
-                   help='T list for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
-        spec.input('external_fields', valid_type=List,
-                   help='B list for inpsd.dat', required=False)  # default=lambda: Dict(dict={})
-        spec.input("plot_dir", valid_type=Str, help="plot dir ", required=False)
+        spec.input(
+            'temperatures',
+            valid_type=List,
+            help='T list for inpsd.dat',
+            required=False,
+        )
+        spec.input(
+            'external_fields',
+            valid_type=List,
+            help='B list for inpsd.dat',
+            required=False,
+        )
+        spec.input(
+            'plot_dir',
+            valid_type=Str,
+            help='plot dir ',
+            required=False,
+        )
 
-        spec.output('sk_num_for_plot',valid_type=ArrayData, help="skyrmions number ", required=False)
+        spec.output(
+            'sk_num_for_plot',
+            valid_type=ArrayData,
+            help='skyrmions number ',
+            required=False,
+        )
         spec.outline(
-                cls.submits,
-                if_(cls.check_for_plot_sk)(
+            cls.submits,
+            if_(cls.check_for_plot_sk)(
                 cls.results_and_plot,
-                cls.combined_for_PD,
-                ),
-                if_(cls.check_for_plot_sk_number)(
-                    cls.plot_skynumber,
-                    cls.plot_skynumber_avg,
-                    cls.plot_skynumber_number_heat_map,
-                    cls.plot_skynumber_number_avg_heat_map,
-                ),
-                )
-
+                cls.combined_for_pd,
+            ),
+            if_(cls.check_for_plot_sk_number)(
+                cls.plot_skynumber,
+                cls.plot_skynumber_avg,
+                cls.plot_skynumber_number_heat_map,
+                cls.plot_sk_number_avg_heatmap,
+            ),
+        )
 
     def check_for_plot_sk(self):
-        try :
+        """Check if the skyrmion should plotted"""
+        try:
             if self.inputs.sk_plot.value > int(0):
                 return True
-            else:
-                return False 
-        except:
-            return False 
-
+            return False
+        except BaseException:
+            return False
 
     def check_for_plot_sk_number(self):
+        """Check if the skyrmion number should be plotted"""
         try:
             if self.inputs.sk_number_plot.value > int(0):
                 return True
-            else:
-                return False 
-        except:
-            return False 
+            return False
+        except BaseException:
+            return False
 
-    # def check_for_plot_average_magnetic_moment(self):
-    #     try:
-    #         if self.inputs.average_magnetic_moment_plot.value > int(0):
-    #             return True
-    #         else:
-    #             return False 
-    #     except:
-    #         return False 
-
-        
-    # def check_for_plot(self):
-    #     if self.inputs.sk_plot.value > int(0):
-    #         return True
-    #     else:
-    #         return False 
     def generate_inputs(self):
-        inputs = self.exposed_inputs(ASDBaseRestartWorkChain)#we need take input dict from the BaseRestartWorkchain, not a new one.
+        """Generate the inputs for the calculation"""
+        inputs = self.exposed_inputs(
+            ASDBaseRestartWorkChain
+        )  #we need take input dict from the BaseRestartWorkchain, not a new one.
         inputs.code = self.inputs.code
         inputs.inpsd_dict = Dict(dict=self.inputs.inpsd_dict)
         inputs.prepared_file_folder = self.inputs.prepared_file_folder
@@ -591,229 +461,185 @@ class UppASDSkyrmionsWorkflow(WorkChain):
         inputs.retrieve_list_name = self.inputs.retrieve_list_name
         return inputs
 
-
     def submits(self):
+        """Submit the calculations"""
         calculations = {}
         self.inputs.inpsd_dict = {}
         self.inputs.inpsd_dict.update(self.inputs.inpsd_skyr.get_dict())
 
-        for idx_T,temperature in enumerate(self.inputs.temperatures):
+        for _index_temperature, temperature in enumerate(self.inputs.temperatures):
             self.inputs.inpsd_dict['temp'] = temperature
-            #self.inputs.inpsd_dict['ip_temp'] = temperature
 
-            self.inputs.inpsd_dict['ip_mcanneal']= Str(""" 5
-                    10000     {}
-                    10000     {}
-                    10000     {}
-                    10000     {}
-                    10000     {}""".format((float(temperature)+500),(float(temperature)+300),(float(temperature)+100),(float(temperature)+10),(float(temperature)))
-                                )
+            self.inputs.inpsd_dict['ip_mcanneal'] = Str(
+                f""" 5
+                    10000     {float(temperature) + 500}
+                    10000     {float(temperature) + 300}
+                    10000     {float(temperature) + 100}
+                    10000     {float(temperature) + 10}
+                    10000     {float(temperature)}"""
+            )
 
-            for idx_B,externel_B in enumerate(self.inputs.external_fields):
-                self.inputs.inpsd_dict['hfield'] = externel_B
-                self.inputs.inpsd_dict['ip_hfield'] = externel_B
-                inputs=self.generate_inputs()
+            for _index_field, external_field in enumerate(self.inputs.external_fields):
+                self.inputs.inpsd_dict['hfield'] = external_field
+                self.inputs.inpsd_dict['ip_hfield'] = external_field
+                inputs = self.generate_inputs()
                 future = self.submit(ASDBaseRestartWorkChain, **inputs)
-                self.report('Running loop for T with value {} and B with value {}'.format(temperature,externel_B))
-                calculations['T'+str(idx_T)+'_'+'B'+str(idx_B)] = future
+                self.report(f'Running loop for T with value {temperature} and B with value {external_field}')
+                calculations[f'T{_index_temperature}_B{_index_field}'] = future
 
         return ToContext(**calculations)
 
     def results_and_plot(self):
+        """Collect and plot the results"""
         sky_num_out = []
         sky_avg_num_out = []
-        
-        for idx_T,temperature in enumerate(self.inputs.temperatures):
+
+        for _index_temperature, _ in enumerate(self.inputs.temperatures):
             sm_list = []
             sam_list = []
-            for idx_B,externel_B in enumerate(self.inputs.external_fields):
-                coord_array =  self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('coord')
+            for _index_field, _ in enumerate(self.inputs.external_fields):
+                coord_array = self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing(
+                ).get_node_by_label('coord')
 
                 # Size of system for plot
-                Nmax = 1000000
-                mom_states = self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('mom_states_traj')
-                points, nrAtoms = readAtoms(coord_array,Nmax)
-                vectors, colors = readVectorsData(mom_states, nrAtoms,Nmax)
-                plot_dir =  self.inputs.plot_dir.value
+                max_number_atoms = 1000000
+                mom_states = self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing(
+                ).get_node_by_label('mom_states_traj')
+                points, number_atoms = read_atoms(coord_array, max_number_atoms)
+                vectors, colors = read_vectors_data(mom_states, number_atoms)
+                plot_dir = self.inputs.plot_dir.value
                 if self.inputs.plot_individual.value > int(0):
-                    plot_realspace(points, nrAtoms,vectors, colors,Nmax,idx_T,idx_B,plot_dir)
+                    plot_realspace(points, vectors, colors, _index_temperature, _index_field, plot_dir)
 
-                sk_data = self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('sk_num_out')
+                sk_data = self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing(
+                ).get_node_by_label('sk_num_out')
                 sm_list.append(sk_data.get_array('sk_number_data')[0])
                 sam_list.append(sk_data.get_array('sk_number_data')[1])
 
             sky_num_out.append(sm_list)
             sky_avg_num_out.append(sam_list)
 
-        sk_num_for_plot = store_sknum_data(List(list=sky_num_out),List(list=sky_avg_num_out))
+        sk_num_for_plot = store_sknum_data(List(list=sky_num_out), List(list=sky_avg_num_out))
 
-        self.out('sk_num_for_plot',sk_num_for_plot)
+        self.out('sk_num_for_plot', sk_num_for_plot)
 
-    def combined_for_PD(self):
+    def combined_for_pd(self):
+        """Combine the collected data for the phase diagrame"""
         if self.inputs.plot_individual.value > int(0) and self.inputs.plot_combine.value > int(0):
             skyrmions_singleplot = []
-            plot_dir =  self.inputs.plot_dir.value
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                for idx_B,externel_B in enumerate(self.inputs.external_fields):
-                    skyrmions_singleplot.append(Image.open('{}/T{}B{}.png'.format(plot_dir,idx_T,idx_B)).crop((200,0,2096,1280))) #we need to crop the white edges 
-            phase_diagram = Image.new('RGB', (648 * len(self.inputs.temperatures), 640 * len(self.inputs.external_fields)))
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                for idx_B,externel_B in enumerate(self.inputs.external_fields):
-                    phase_diagram.paste(skyrmions_singleplot[len(self.inputs.external_fields)*idx_T+idx_B], (0 + 648*idx_T, 0 + 640*idx_B))
-            phase_diagram.save('{}/PhaseDiagram.png'.format(plot_dir), quality=100)
+            plot_dir = self.inputs.plot_dir.value
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                for _index_field, _ in enumerate(self.inputs.external_fields):
+                    skyrmions_singleplot.append(
+                        Image.open(f'{plot_dir}/T{_index_temperature}B{_index_field}.png').crop((200, 0, 2096, 1280))
+                    )  #we need to crop the white edges
+            phase_diagram = Image.new(
+                'RGB', (648 * len(self.inputs.temperatures), 640 * len(self.inputs.external_fields))
+            )
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                for _index_field, _ in enumerate(self.inputs.external_fields):
+                    phase_diagram.paste(
+                        skyrmions_singleplot[len(self.inputs.external_fields) * _index_temperature + _index_field],
+                        (0 + 648 * _index_temperature, 0 + 640 * _index_field)
+                    )
+            phase_diagram.save(f'{plot_dir}/PhaseDiagram.png', quality=100)
 
     def plot_skynumber(self):
-        plot_dir =  self.inputs.plot_dir.value
-        fig, ax = plt.subplots()
-        for idx_B,externel_B in enumerate(self.inputs.external_fields):
-            sk_number_list=[]
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                sk_number_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('sk_num_out').get_array('sk_number_data')[0])
-            ax.plot(self.inputs.temperatures.get_list(), sk_number_list, label='B: {} T'.format(externel_B[-6:]))
-        ax.legend(fontsize='xx-small')
-        ax.set_ylabel('Skyrmion number') 
-        ax.set_xlabel('Temperature')
-        plt.savefig('{}/sk_number.png'.format(plot_dir))
+        """Plot the skyrmion number"""
+        plot_dir = self.inputs.plot_dir.value
+        _, axes = plt.subplots()
+        for _index_field, external_field in enumerate(self.inputs.external_fields):
+            sk_number_list = []
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                sk_number_list.append(
+                    self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing().get_node_by_label('sk_num_out').
+                    get_array('sk_number_data')[0]
+                )
+            axes.plot(self.inputs.temperatures.get_list(), sk_number_list, label=f'B: {external_field[-6:]} T')
+        axes.legend(fontsize='xx-small')
+        axes.set_ylabel('Skyrmion number')
+        axes.set_xlabel('Temperature')
+        plt.savefig(f'{plot_dir}/sk_number.png')
 
     def plot_skynumber_avg(self):
-        plot_dir =  self.inputs.plot_dir.value
-        fig, ax = plt.subplots()
-        for idx_B,externel_B in enumerate(self.inputs.external_fields):
-            sk_number_list=[]
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                sk_number_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('sk_num_out').get_array('sk_number_data')[1])
-            ax.plot(self.inputs.temperatures.get_list(), sk_number_list, label='B: {} T'.format(externel_B[-6:]))#this should be changed with different B 
-        ax.legend(fontsize='xx-small')
-        ax.set_ylabel('Skyrmion number') 
-        ax.set_xlabel('Temperature')
-        plt.savefig('{}/sk_number_avg.png'.format(plot_dir))
+        """Plot the average skyrmion number"""
+        plot_dir = self.inputs.plot_dir.value
+        _, axes = plt.subplots()
+        for _index_field, external_field in enumerate(self.inputs.external_fields):
+            sk_number_list = []
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                sk_number_list.append(
+                    self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing().get_node_by_label('sk_num_out').
+                    get_array('sk_number_data')[1]
+                )
+            axes.plot(
+                self.inputs.temperatures.get_list(), sk_number_list, label=f'B: {external_field[-6:]} T'
+            )  #this should be changed with different B
+        axes.legend(fontsize='xx-small')
+        axes.set_ylabel('Skyrmion number')
+        axes.set_xlabel('Temperature')
+        plt.savefig(f'{plot_dir}/sk_number_avg.png')
 
     def plot_skynumber_number_heat_map(self):
-        plot_dir =  self.inputs.plot_dir.value
+        """Plot the heat map the skyrmion number"""
+        plot_dir = self.inputs.plot_dir.value
         heat_map = []
-        for idx_B,externel_B in enumerate(self.inputs.external_fields):
-            sk_number_list=[]
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                sk_number_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('sk_num_out').get_array('sk_number_data')[0])
+        for _index_field, _ in enumerate(self.inputs.external_fields):
+            sk_number_list = []
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                sk_number_list.append(
+                    self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing().get_node_by_label('sk_num_out').
+                    get_array('sk_number_data')[0]
+                )
             heat_map.append(sk_number_list)
         y_orginal = self.inputs.external_fields.get_list()
         y_for_plot = []
         for i in y_orginal:
             y_for_plot.append(float(i.split()[-1]))
-        
-    
-        fig = go.Figure(data=go.Heatmap(
-                        z=heat_map,
-                        x=self.inputs.temperatures.get_list(),
-                        y=y_for_plot,
-                        zsmooth = 'best',
-                        zmid=0,))
+
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=heat_map,
+                x=self.inputs.temperatures.get_list(),
+                y=y_for_plot,
+                zsmooth='best',
+                zmid=0,
+            )
+        )
 
         fig.update_xaxes(range=[self.inputs.temperatures.get_list()[0], self.inputs.temperatures.get_list()[-1]])
         fig.update_yaxes(range=[y_for_plot[0], y_for_plot[-1]])
         fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
-        fig.write_image('{}/sk_number_heatmap.png'.format(plot_dir))
+        fig.write_image(f'{plot_dir}/sk_number_heatmap.png')
 
-
-    def plot_skynumber_number_avg_heat_map(self):
-        plot_dir =  self.inputs.plot_dir.value
+    def plot_sk_number_avg_heatmap(self):
+        """Plot the heat map of the average skyrmion number"""
+        plot_dir = self.inputs.plot_dir.value
         heat_map = []
-        for idx_B,externel_B in enumerate(self.inputs.external_fields):
-            sk_number_list=[]
-            for idx_T,temperature in enumerate(self.inputs.temperatures):
-                sk_number_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('sk_num_out').get_array('sk_number_data')[1])
+        for _index_field, _ in enumerate(self.inputs.external_fields):
+            sk_number_list = []
+            for _index_temperature, _ in enumerate(self.inputs.temperatures):
+                sk_number_list.append(
+                    self.ctx[f'T{_index_temperature}_B{_index_field}'].get_outgoing().get_node_by_label('sk_num_out').
+                    get_array('sk_number_data')[1]
+                )
             heat_map.append(sk_number_list)
         y_orginal = self.inputs.external_fields.get_list()
         y_for_plot = []
         for i in y_orginal:
             y_for_plot.append(float(i.split()[-1]))
-        
 
-        fig = go.Figure(data=go.Heatmap(
-                        z=heat_map,
-                        x=self.inputs.temperatures.get_list(),
-                        y=y_for_plot,
-                        zsmooth = 'best',
-                        zmid=0,))
-
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=heat_map,
+                x=self.inputs.temperatures.get_list(),
+                y=y_for_plot,
+                zsmooth='best',
+                zmid=0,
+            )
+        )
 
         fig.update_xaxes(range=[self.inputs.temperatures.get_list()[0], self.inputs.temperatures.get_list()[-1]])
         fig.update_yaxes(range=[y_for_plot[0], y_for_plot[-1]])
-        fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
-        fig.write_image('{}/sk_number_heatmap_avg.png'.format(plot_dir))
-
-    # def plot_average_magnetic_moment(self):
-    #     plot_dir =  self.inputs.plot_dir.value
-    #     heat_map = []
-    #     for idx_B,externel_B in enumerate(self.inputs.external_fields):
-    #         average_magnetic_moment=[]
-    #         for idx_T,temperature in enumerate(self.inputs.temperatures):
-    #             average_magnetic_moment.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('cumulants')['magnetization'])
-    #         heat_map.append(average_magnetic_moment)
-    #     y_orginal = self.inputs.external_fields.get_list()
-    #     y_for_plot = []
-    #     for i in y_orginal:
-    #         y_for_plot.append(float(i.split()[-1]))
-        
-
-    #     fig = go.Figure(data=go.Heatmap(
-    #                     z=heat_map,
-    #                     x=self.inputs.temperatures.get_list(),
-    #                     y=y_for_plot,
-    #                     zsmooth = 'best',))
-    #     fig.update_xaxes(range=[self.inputs.temperatures.get_list()[0], self.inputs.temperatures.get_list()[-1]])
-    #     fig.update_yaxes(range=[int(y_for_plot[0]), int(y_for_plot[-1])])
-    #     fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
-    #     fig.write_image('{}/average_magnetic_moment.png'.format(plot_dir))
-
-
-    # def plot_average_specific_heat(self):
-    #     plot_dir =  self.inputs.plot_dir.value
-        
-    #     if len(self.inputs.external_fields.get_list()) == 1:
-    #         #plot the line for one B
-    #         for idx_B,externel_B in enumerate(self.inputs.external_fields):
-    #             energy_list=[]
-    #             tempture_list = self.inputs.temperatures.get_list()
-    #             for idx_T,temperature in enumerate(self.inputs.temperatures):
-    #                 energy_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('cumulants')['energy'])
-    #             de_dt = (np.gradient(np.array(energy_list))/np.gradient(np.array(tempture_list)))
-    #             de_dt = (de_dt/de_dt[0]).tolist()
-    #         fig, ax = plt.subplots()
-    #         ax.plot(self.inputs.temperatures.get_list(), de_dt)
-    #         ax.legend(fontsize='xx-small')
-    #         ax.set_ylabel('C') 
-    #         ax.set_xlabel('Temperature')
-    #         plt.savefig('{}/CV_T.png'.format(plot_dir))
-
-    #     else:
-    #         heat_map = []
-    #         for idx_B,externel_B in enumerate(self.inputs.external_fields):
-    #             energy_list=[]
-    #             tempture_list = self.inputs.temperatures.get_list()
-
-    #             for idx_T,temperature in enumerate(self.inputs.temperatures):
-    #                 energy_list.append(self.ctx['T'+str(idx_T)+'_'+'B'+str(idx_B)].get_outgoing().get_node_by_label('cumulants')['energy'])
-    #             de_dt = (np.gradient(np.array(energy_list))/np.gradient(np.array(tempture_list))).tolist()
-    #             heat_map.append(de_dt)
-    #         y_orginal = self.inputs.external_fields.get_list()
-    #         y_for_plot = []
-    #         for i in y_orginal:
-    #             y_for_plot.append(float(i.split()[-1]))
-            
-
-    #         fig = go.Figure(data=go.Heatmap(
-    #                         z=heat_map,
-    #                         x=self.inputs.temperatures.get_list(),
-    #                         y=y_for_plot,
-    #                         zsmooth = 'best',))
-
-    #         fig.update_xaxes(range=[self.inputs.temperatures.get_list()[0], self.inputs.temperatures.get_list()[-1]])
-    #         fig.update_yaxes(range=[int(y_for_plot[0]), int(y_for_plot[-1])])
-    #         fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
-    #         fig.write_image('{}/average_specific_heat.png'.format(plot_dir))
-
-
-
-
-
+        fig.update_traces(colorscale='Jet', selector={'type': 'heatmap'})
+        fig.write_image(f'{plot_dir}/sk_number_heatmap_avg.png')

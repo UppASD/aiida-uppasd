@@ -3,13 +3,15 @@
 Set of command line functions for the handling of aiida-uppasd
 """
 import typing
+
 import click
-import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from scipy.spatial.transform import Rotation
-from aiida import orm
+import numpy as np
 import plotext
+from scipy.spatial.transform import Rotation
+
+from aiida import orm
 
 
 @click.group()
@@ -133,21 +135,21 @@ def output_node_query(
     :return: get an array for a corresponding calculation node
     :rtype: np.ndarray
     """
-    qb = orm.QueryBuilder()
-    qb.append(
+    query_builder = orm.QueryBuilder()
+    query_builder.append(
         orm.CalcJobNode,
         filters={'id': str(cal_node_pk)},
         tag='cal_node',
     )
-    qb.append(
+    query_builder.append(
         orm.ArrayData,
         with_incoming='cal_node',
         edge_filters={'label': {
             '==': output_array_name
         }},
     )
-    all_array = qb.all()
-    return all_array[0][0].get_array(attribute_name)
+    all_array = query_builder.all(flat=True)
+    return all_array[0].get_array(attribute_name)
 
 
 def trajectory_parser(

@@ -2,8 +2,9 @@
 """
 AiiDA calculation plugin wrapping the SD executable (from UppASD packages).
 """
-import os
 from ast import literal_eval
+import os
+
 from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
@@ -162,11 +163,9 @@ class UppASDCalculation(CalcJob):
             help='Skyrmion number',
         )
 
-        #spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
-        #message='Calculation did not produce all expected output files.')
         spec.exit_code(451, 'WallTimeError', message='Hit the max wall time')
 
-    def find_out_files(self, filepath, except_files=None):  # pylint: disable=no-self-use
+    def find_out_files(self, filepath, except_files=None):
         """
 
         | find out file names in the folder of input path and exclude files in except_files(a list)

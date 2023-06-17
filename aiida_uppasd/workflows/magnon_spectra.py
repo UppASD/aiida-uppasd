@@ -17,12 +17,14 @@ several functions are base on codes from UppASD repo like preQ.py and postQ.py
 which @Anders bergman
 """
 
+import matplotlib.pyplot as plt
 # -*- coding: utf-8 -*-
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import ndimage
+
 from aiida import orm
 from aiida.engine import ToContext, WorkChain
+
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 
 
@@ -75,7 +77,7 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             cls.results_and_plot,
         )
 
-    def generate_inputs_and_validation_exchange_model(self):
+    def gen_inputs_validate_exch_model(self):
         """
         Generate the inputs needed for the workchain
 
@@ -110,7 +112,7 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         Submit the calculations needed
         """
         calculations = {}
-        inputs = self.generate_inputs_and_validation_exchange_model()
+        inputs = self.gen_inputs_validate_exch_model()
         future = self.submit(ASDBaseRestartWorkChain, **inputs)
         #modify here to make a loop if needed
         calculations['AMS'] = future

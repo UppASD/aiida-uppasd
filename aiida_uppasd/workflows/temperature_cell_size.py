@@ -5,10 +5,13 @@ This demo we only need temperature list and N(cell size)
 Workchain demo for plot M(T) with different cell setting
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
-from aiida import orm, load_profile
+import numpy as np
+
+from aiida import load_profile, orm
 from aiida.engine import ExitCode, WorkChain
+
 from aiida_uppasd.workflows.temperature_restart import UppASDTemperatureRestartWorkflow
 
 load_profile()
@@ -16,15 +19,15 @@ load_profile()
 
 def cal_node_query(workchain_pk):
     """Simple query function that helps find output dict"""
-    qb = orm.QueryBuilder()
-    qb.append(
+    query = orm.QueryBuilder()
+    query.append(
         orm.WorkChainNode,
         filters={'id': str(workchain_pk)},
         tag='workflow_node',
     )
-    qb.append(orm.Dict, with_incoming='workflow_node', tag='workdict')
+    query.append(orm.Dict, with_incoming='workflow_node', tag='workdict')
 
-    return qb.all()
+    return query.all()
 
 
 class MCVariableCellWorkchain(WorkChain):
