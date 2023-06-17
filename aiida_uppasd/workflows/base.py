@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Workchain to run an UppASD simulation with automated error handling and restarts."""
 from aiida import orm
-from aiida.engine import ToContext, BaseRestartWorkChain
+from aiida.engine import BaseRestartWorkChain, ToContext
 from aiida.plugins import CalculationFactory
 
 ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')

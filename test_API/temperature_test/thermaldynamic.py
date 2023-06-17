@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
 import os
+
 import numpy as np
+
 import aiida
 from aiida import orm
 from aiida.engine import submit
-from aiida.orm import (
-    Code,
-    Int,
-    Float,
-    Str,
-    List,
-)
+from aiida.orm import Code, Float, Int, List, Str
+
 from aiida_uppasd.workflows.ThermalDynamic import ThermalDynamicWorkflow
 
 aiida.load_profile()

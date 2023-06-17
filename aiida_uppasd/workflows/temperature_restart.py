@@ -2,13 +2,16 @@
 """Workchain to run an UppASD simulation with automated error handling and restarts."""
 import json
 from pathlib import Path
+
 import numpy as np
 from scipy import integrate
 from scipy.interpolate import InterpolatedUnivariateSpline
+
 from aiida import orm
 from aiida.common import AttributeDict
 from aiida.engine import ToContext, WorkChain, calcfunction
 from aiida.plugins import CalculationFactory
+
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 
 ASDCalculation = CalculationFactory('uppasd.uppasd_calculation')

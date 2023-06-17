@@ -3,8 +3,10 @@
 
 # Import numpy for array handling
 from sys import stdout
+
 import numpy as np
-from aiida.tools import spglib_tuple_to_structure, get_kpoints_path
+
+from aiida.tools import get_kpoints_path, spglib_tuple_to_structure
 
 
 def double_fortran_to_float(data: str) -> float:

@@ -3,7 +3,9 @@
 Perform a plot from the data that results from a given query
 """
 import typing
+
 import matplotlib.pyplot as plt
+
 from aiida import load_profile, orm
 
 load_profile()

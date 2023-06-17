@@ -6,9 +6,10 @@ Created on Mon Aug 23 15:15:05 2021
 @author: qichen
 """
 import os
-from aiida import orm, load_profile
-from aiida.plugins import CalculationFactory
+
+from aiida import load_profile, orm
 from aiida.engine import submit
+from aiida.plugins import CalculationFactory
 
 load_profile()
 code = orm.Code.get_from_string('uppasd_dev@uppasd_local')

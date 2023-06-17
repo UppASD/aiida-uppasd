@@ -2,8 +2,9 @@
 """
 AiiDA calculation plugin wrapping the SD executable (from UppASD packages).
 """
-import os
 from ast import literal_eval
+import os
+
 from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob

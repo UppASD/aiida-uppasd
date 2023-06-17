@@ -3,13 +3,15 @@
 Set of command line functions for the handling of aiida-uppasd
 """
 import typing
+
 import click
-import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from scipy.spatial.transform import Rotation
-from aiida import orm
+import numpy as np
 import plotext
+from scipy.spatial.transform import Rotation
+
+from aiida import orm
 
 
 @click.group()

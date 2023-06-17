@@ -5,7 +5,8 @@ Created on Wed Sep  1 17:08:02 2021
 
 @author: qichen
 """
-from aiida import orm, load_profile
+from aiida import load_profile, orm
+
 load_profile()
 demo_group = orm.Group(label='demo_group2')
 demo_group.store()

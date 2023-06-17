@@ -17,12 +17,14 @@ several functions are base on codes from UppASD repo like preQ.py and postQ.py
 which @Anders bergman
 """
 
+import matplotlib.pyplot as plt
 # -*- coding: utf-8 -*-
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import ndimage
+
 from aiida import orm
 from aiida.engine import ToContext, WorkChain
+
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
 
 

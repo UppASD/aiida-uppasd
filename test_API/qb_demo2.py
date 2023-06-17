@@ -3,11 +3,14 @@
 Set of helper functions to plot data from the calculations
 """
 import typing
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from aiida import orm, load_profile
 import seaborn as sns
+
+from aiida import load_profile, orm
+
 load_profile()
 
 

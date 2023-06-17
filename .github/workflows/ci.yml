@@ -1,0 +1,21 @@
+name: CI
+
+on: [push, pull_request]
+
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Set up Python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: "3.9"
+      - name: Make sure virtualevn>20 is installed, which will yield newer pip and possibility to pin pip version.
+        run: pip install "virtualenv>20"
+      - name: Install Tox
+        run: pip install tox
+      - name: Run pre-commit in Tox
+        run: tox -e pre-commit

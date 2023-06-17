@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """Base workchain"""
 import os
-from aiida import orm, load_profile
+
+from aiida import load_profile, orm
 from aiida.engine import submit
+
 from aiida_uppasd.workflows.base_restart import ASDBaseRestartWorkChain
+
 load_profile()
 
 input_uppasd = {

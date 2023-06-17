@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Temperature sweep test"""
 import matplotlib.pyplot as plt
-from aiida.orm.nodes import WorkChainNode
-from aiida.orm import QueryBuilder, Dict
+
 import aiida
+from aiida.orm import Dict, QueryBuilder
+from aiida.orm.nodes import WorkChainNode
 
 aiida.load_profile()
 

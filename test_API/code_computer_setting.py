@@ -5,10 +5,11 @@ https://github.com/aiidateam/aiida-diff/blob/master/aiida_diff/helpers.py
 and modified by Qichen
 '''
 
-import tempfile
 import shutil
-from aiida.orm import Computer, Code
+import tempfile
+
 from aiida.common.exceptions import NotExistent
+from aiida.orm import Code, Computer
 
 LOCALHOST_NAME = 'localhost-test'
 

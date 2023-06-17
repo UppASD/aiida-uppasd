@@ -13,10 +13,13 @@ qichenx@kth.se
 import os
 import sys
 import time
-from aiida import orm, load_profile
-from aiida.plugins import CalculationFactory
+
+from code_computer_setting import get_code, get_computer, get_path_to_executable
+
+from aiida import load_profile, orm
 from aiida.engine import submit
-from code_computer_setting import get_path_to_executable, get_computer, get_code
+from aiida.plugins import CalculationFactory
+
 load_profile()
 
 # Try to find the UppASD executable file
