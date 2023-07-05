@@ -16,6 +16,6 @@ jobs:
       - name: Make sure virtualevn>20 is installed, which will yield newer pip and possibility to pin pip version.
         run: pip install "virtualenv>20"
       - name: Install Tox
-        run: pip install tox
+        run: pip install tox 
       - name: Run pre-commit in Tox
         run: tox -e pre-commit

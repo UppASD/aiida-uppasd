@@ -42,6 +42,12 @@ pre-commit = [
     "pylint~=2.15.0",
     "sphinx-lint~=0.6"
 ]
+plotting = [
+    "vtk>=7.0",
+    "plotly>=5.14.1",
+    "matplotlib",
+    "scipy"
+]
 docs = [
     "aiida-core[docs]~=2.3",
     "sphinx-autobuild",
@@ -145,6 +151,7 @@ allowlist_externals = bash
 commands = bash -ec 'pre-commit run --all-files || ( git diff; git status; exit 1; )'
 extras =
        pre-commit
+       plotting
        tests
 
 [flake8]

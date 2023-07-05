@@ -17,11 +17,6 @@ several functions are base on codes from UppASD repo like preQ.py and postQ.py
 which @Anders bergman
 """
 
-import matplotlib.pyplot as plt
-# -*- coding: utf-8 -*-
-import numpy as np
-from scipy import ndimage
-
 from aiida import orm
 from aiida.engine import ToContext, WorkChain
 
@@ -71,6 +66,12 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
             required=True,
             help='Adiabatic magnon spectrum',
         )
+        spec.output(
+            'ams_plot_var',
+            valid_type=orm.Dict,
+            required=True,
+            help='Adiabatic magnon spectrum plotting variables',
+        )
 
         spec.outline(
             cls.submits,
@@ -118,62 +119,9 @@ class UppASDMagnonSpectraRestartWorkflow(WorkChain):
         calculations['AMS'] = future
         return ToContext(**calculations)
 
-    def results_and_plot(self):  # pylint: disable=too-many-locals
+    def results(self):  # pylint: disable=too-many-locals
         """Process results and basic plot"""
         ams_plot_var_out = self.ctx['AMS'].get_outgoing().get_node_by_label('AMS_plot_var')
-        timestep = ams_plot_var_out.get_dict()['timestep']
-        sc_step = ams_plot_var_out.get_dict()['sc_step']
-        sqw_x = ams_plot_var_out.get_dict()['sqw_x']
-        sqw_y = ams_plot_var_out.get_dict()['sqw_y']
-        ams_t = ams_plot_var_out.get_dict()['ams']
-        axidx_abs = ams_plot_var_out.get_dict()['axidx_abs']
-        ams_dist_col = ams_plot_var_out.get_dict()['ams_dist_col']
-        axlab = ams_plot_var_out.get_dict()['axlab']
-        plot_dir = self.inputs.plot_dir.value
-        _ = plt.figure(figsize=[8, 5])
-        axes = plt.subplot(111)
-        hbar = float(4.135667662e-15)
-        emax = 0.5 * float(hbar) / (float(timestep) * float(sc_step)) * 1e3
-        #print('emax_sqw=',emax)
-        sqw_x = np.array(sqw_x)
-        sqw_y = np.array(sqw_y)
-        #ams = np.array(ams)
-        sqw_temp = (sqw_x**2.0 + sqw_y**2.0)**0.5
-        sqw_temp[:, 0] = sqw_temp[:, 0] / 100.0
-        sqw_temp = sqw_temp.T / sqw_temp.T.max(axis=0)
-        sqw_temp = ndimage.gaussian_filter1d(
-            sqw_temp,
-            sigma=1,
-            axis=1,
-            mode='constant',
-        )
-        sqw_temp = ndimage.gaussian_filter1d(
-            sqw_temp,
-            sigma=5,
-            axis=0,
-            mode='reflect',
-        )
-        plt.imshow(
-            sqw_temp,
-            cmap=plt.get_cmap('jet'),
-            interpolation='antialiased',
-            origin='lower',
-            extent=[axidx_abs[0], axidx_abs[-1], 0, emax],
-        )  # Note here, we could choose color bar here.
-        ams_t = np.array(ams_t)
-        plt.plot(
-            ams_t[:, 0] / ams_t[-1, 0] * axidx_abs[-1],
-            ams_t[:, 1:ams_dist_col],
-            'white',
-            lw=1,
-        )
-        plt.colorbar()
-        plt.xticks(axidx_abs, axlab)
-        plt.xlabel('q')
-        plt.ylabel('Energy (meV)')
-        plt.autoscale(tight=False)
-        axes.set_aspect('auto')
-        plt.grid(b=True, which='major', axis='x')
-        plt.savefig(f'{plot_dir}/AMS.png')
         ams = self.ctx['AMS'].get_outgoing().get_node_by_label('ams')
         self.out('ams', ams)
+        self.out('ams_plot_var', ams_plot_var_out)
