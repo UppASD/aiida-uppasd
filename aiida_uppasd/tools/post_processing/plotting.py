@@ -60,8 +60,8 @@ def plot_skyrmion_number(node: orm.Node, plot_dir: Union[str, os.PathLike], meth
             zmid=0,
         ))
 
-        fig.update_xaxes(range=[node.inputs.temperatures.get_list()[0], node.inputs.temperatures.get_list()[-1]])
-        fig.update_yaxes(range=[_bfield[0], _bfield[-1]])
+        fig.update_xaxes(range=[min(_temperature), max(_temperature)])
+        fig.update_yaxes(range=[min(_bfield), max(_bfield)])
         fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
         fig.write_image(f'{plot_dir}/sk_number_heatmap.png')
 
@@ -490,3 +490,431 @@ def plot_ams(node: orm.Node, plot_dir: Union[str, os.PathLike]):  # pylint: disa
     axes.set_aspect('auto')
     plt.grid(b=True, which='major', axis='x')
     plt.savefig(f'{plot_dir}/AMS.png')
+
+
+def plot_average_specific_heat(node: orm.Node, plot_dir: Union[str, os.PathLike]):
+    """Plot the average specific heat"""
+
+    #plot the line for one B
+
+    _energy = []
+    _bfield = []
+    _temperature = []
+    for _sub_node in node.called_descendants:
+        _energy.append(_sub_node.outputs.cumulats.get_dict()['energy'])
+        _temperature.append(_sub_node.inputs.inpsd_dict.get_dict()['temp'])
+        _bfield.append(_sub_node.inputs.inpsd_dict.get_dict()['hfield'])
+
+    _bfield_unique = np.unique(_bfield)[0]
+
+    fig = go.Figure()
+
+    heat_map = []
+
+    for _field in _bfield_unique:
+        _temperature_curr = np.asarray(_temperature)[np.where(np.asarray(_bfield) == _field)[0]]
+        _energy_curr = np.asarray(_energy[np.where(np.asarray(_bfield) == _field)[0]])
+
+        de_dt = np.gradient(np.array(_energy_curr)) / np.gradient(np.array(_temperature_curr))
+        heat_map.append(de_dt.tolist())
+        de_dt = (de_dt / de_dt[0]).tolist()
+
+        fig.add_trace(go.Scatter(_temperature_curr, de_dt, name=f'B={_field}'))
+    fig.update_layout(xaxis_title='Temperature', yaxis_title='C<sub>v</sub>')
+    fig.write_image(f'{plot_dir}/CV_T.png')
+    fig_heatmap = go.Figure(data=go.Heatmap(
+        z=heat_map,
+        x=_temperature,
+        y=_bfield,
+        zsmooth='best',
+    ))
+
+    fig_heatmap.update_xaxes(range=[min(_temperature), max(_temperature)])
+    fig_heatmap.update_yaxes(range=[int(min(_bfield)), int(max(_bfield))])
+    fig_heatmap.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
+    fig_heatmap.write_image(f'{plot_dir}/average_specific_heat.png')
+
+
+def plot_average_magnetic_moment(node: orm.Node, plot_dir: Union[str, os.PathLike]):
+    """Plot the average magnetic moment"""
+    heat_map = []
+    _temperature = []
+    _bfield = []
+    for _sub_node in node.called_descendats:
+        _temperature.append(_sub_node.inputs.inpsd_dict.get_dict()['temp'])
+        _bfield.append(_sub_node.inputs.inpsd_dcit.get_dict()['hfield'])
+        heat_map.append(_sub_node.outputs.cumulants.get_dict()['magnetization'])
+
+    fig = go.Figure(data=go.Heatmap(
+        z=heat_map,
+        x=_temperature,
+        y=_bfield,
+        zsmooth='best',
+    ))
+    fig.update_xaxes(range=[min(_temperature), max(_temperature)])
+    fig.update_yaxes(range=[int(min(_bfield)), int(max(_bfield))])
+    fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
+    fig.write_image(f'{plot_dir}/average_magnetic_moment.png')
+
+
+def plot_pd(
+    plot_dir,
+    heat_map,
+    x_label_list,
+    y_label_list,
+    plot_name,
+    xlabel,
+    ylabel,
+):
+    #pylint: disable=too-many-arguments
+    """Plotting the phase diagram"""
+    fig = go.Figure(data=go.Heatmap(
+        z=heat_map,
+        x=x_label_list,
+        y=y_label_list,
+        zsmooth='best',
+    ))
+    fig.update_xaxes(range=[int(float(x_label_list[0])), int(float(x_label_list[-1]))])
+    fig.update_yaxes(range=[int(float(y_label_list[0])), int(float(y_label_list[-1]))])
+    fig.update_traces(colorscale='Jet', selector=dict(type='heatmap'))
+    fig.update_layout(yaxis={'title': f'{xlabel}', 'tickangle': -90}, xaxis={'title': f'{ylabel}'})
+    fig.write_image(f"{plot_dir}/{plot_name.replace(' ', '_')}.png")
+
+
+def plot_line(
+    x_data,
+    y_data,
+    line_name_list,
+    x_label,
+    y_label,
+    plot_path,
+    plot_name,
+    leg_name_list,
+):
+    #pylint: disable=too-many-arguments
+    """Line plot"""
+    #Since we need all lines in one plot here x and y should be a dict with the line name on that
+    plt.figure()
+    _, axes = plt.subplots()
+    for index, _entry in enumerate(line_name_list):
+        axes.plot(
+            x_data,
+            y_data[_entry],
+            label=f'{leg_name_list[index]}',
+        )
+    axes.legend()
+    axes.set_xlabel(x_label)
+    axes.set_ylabel(y_label)
+    plt.savefig(f'{plot_path}/{plot_name}.png')
+    plt.close()
+
+
+def plot_mag_phase_diagram(node: orm.Node):
+    """Plot the magnetization phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['magnetization'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('M_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_mag_temp(node: orm.Node):
+    """Plot the magnetization as a function of temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['magnetization']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(),
+        line_for_plot,
+        line_name_list,
+        'T',
+        'M',
+        node.inputs.plot_dir.value,
+        'M_T',
+        leg_name_list,
+    )
+
+
+def plot_cev_phase_diagram(node: orm.Node):
+    """Check if the specific heat phase diagram should be produced"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['specific_heat'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('specific_heat_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_specific_heat_temp(node: orm.Node):
+    """Plot the specific head as as function of temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['specific_heat']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'specific_heat',
+        node.inputs.plot_dir.value, 'specific_heat_T', leg_name_list
+    )
+
+
+def plot_sus_phase_diagram(node: orm.Node):
+    """Plot the magnetic susceptibility phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['susceptibility'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('susceptibility_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_susceptibility_temp(node: orm.Node):
+    """Plot the susceptibility as a function of temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['susceptibility']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'Susceptibility',
+        node.inputs.plot_dir.value, 'Susceptibility_T', leg_name_list
+    )
+
+
+def plot_free_e_phase_diagram(node: orm.Node):
+    """Plot the free energy phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['free_e'])
+        plot_pd(
+            node.inputs.plot_dir.value,
+            pd_for_plot,
+            node.inputs.temperatures.get_list(),
+            y_label_list,
+            ('free_e_T' + str(cell_size)),
+            'B',
+            'T',
+        )
+
+
+def plot_free_e_temp(node: orm.Node):
+    """Plot the free energy as a function of temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['free_e']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'free_e', node.inputs.plot_dir.value,
+        'free_e_T', leg_name_list
+    )
+
+
+def plot_entropy_phase_diagram(node: orm.Node):
+    """Plot the entropy phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['entropy'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('entropy_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_entropy_temp(node: orm.Node):
+    """Plot the entropy vs temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['entropy']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'Entropy', node.inputs.plot_dir.value,
+        'Entropy_T', leg_name_list
+    )
+
+
+def plot_energy_phase_diagram(node: orm.Node):
+    """Plot the energy phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['energy'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('energy_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_energy_temp(node: orm.Node):
+    """Plot the energy vs temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['energy']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(), line_for_plot, line_name_list, 'T', 'energy', node.inputs.plot_dir.value,
+        'energy_T', leg_name_list
+    )
+
+
+def plot_dudt_phase_diagram(node: orm.Node):
+    """Plot the variation of the energy phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['dudt'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('dudt_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_dudt_temp(node: orm.Node):
+    """Plot the variation of the energy vs temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['dudt']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(),
+        line_for_plot,
+        line_name_list,
+        'T',
+        'dudt',
+        node.inputs.plot_dir.value,
+        'dudt_T',
+        leg_name_list,
+    )
+
+
+def plot_binder_cumu_phase_diagram(node: orm.Node):
+    """Plot the binder cumulant phase diagram"""
+    y_label_list = []
+    for i in node.inputs.external_fields.get_list():
+        y_label_list.append(float(max(np.array(i.split()))))
+
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        pd_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        pd_for_plot = []
+        for i in pd_dict.keys():
+            pd_for_plot.append(pd_dict[i]['binder_cumulant'])
+        plot_pd(
+            node.inputs.plot_dir.value, pd_for_plot, node.inputs.temperatures.get_list(), y_label_list,
+            ('binder_cumulant_T' + str(cell_size)), 'B', 'T'
+        )
+
+
+def plot_binder_cumulant_temp(node: orm.Node):
+    """Plot the binder cumulant as as function of temperature"""
+    line_name_list = []
+    leg_name_list = []
+    line_for_plot = {}
+    for _, cell_size in enumerate(node.inputs.cell_size):
+        line_dict = node.outputs.thermal_dynamic_output.get_dict()[f'{cell_size}']
+        leg_name_list.append(('Cell:' + cell_size.replace(' ', '_')))
+        index = 0
+        for i in line_dict.keys():
+            line_for_plot[f"{cell_size.replace(' ', '_')}_{index}"] = line_dict[i]['binder_cumulant']
+            line_name_list.append(f"{cell_size.replace(' ', '_')}_{index}")
+            index = index + 1
+    plot_line(
+        node.inputs.temperatures.get_list(),
+        line_for_plot,
+        line_name_list,
+        'T',
+        'binder_cumulant',
+        node.inputs.plot_dir.value,
+        'binder_cumulant_T',
+        leg_name_list,
+    )
