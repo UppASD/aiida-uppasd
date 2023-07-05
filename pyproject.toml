@@ -151,6 +151,7 @@ allowlist_externals = bash
 commands = bash -ec 'pre-commit run --all-files || ( git diff; git status; exit 1; )'
 extras =
        pre-commit
+       plotting
        tests
 
 [flake8]
